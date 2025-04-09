@@ -1,0 +1,8 @@
+.venv/
+exercise_data/*
+.DS_Store
+.env
+**/__pycache__/
+data/
+.streamlit/
+certificates/
