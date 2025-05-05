@@ -9,9 +9,10 @@ import (
 func RegisterRoutes(mux *http.ServeMux) {
 
     mux.HandleFunc("/user/id", handlers.GetUserHandler)
+    mux.HandleFunc("/session/data",handlers.GetSessionHandler)
     mux.HandleFunc("/routines/list", handlers.GetRoutineListHandler)
     mux.HandleFunc("/routines/data", handlers.GetRoutineDataHandler)
     mux.HandleFunc("/workouts/list", handlers.GetWorkoutListHandler)
     mux.HandleFunc("/workouts/data", handlers.GetWorkoutDataHandler)
-
+    
 }

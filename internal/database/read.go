@@ -108,3 +108,14 @@ func GetWorkoutData(userID, workoutID primitive.ObjectID) (workout models.FullWo
 
 	return
 }
+
+func GetSessionData(userID primitive.ObjectID) (session models.Session, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("sessions")
+
+	err = collection.FindOne(ctx, bson.M{"userId":userID}).Decode(&session)
+
+	return
+}

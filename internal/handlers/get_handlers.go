@@ -141,3 +141,26 @@ func GetWorkoutDataHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(workout)
 }
+
+func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
+    userID := r.URL.Query().Get("user_id")
+    if userID == "" {
+        http.Error(w, "Missing user_id", http.StatusBadRequest)
+        return 
+    }
+
+    userObjID, err := primitive.ObjectIDFromHex(userID)
+    if err != nil {
+        http.Error(w, "Invalid user_id", http.StatusBadRequest)
+        return
+    }
+
+    session, err := database.GetSessionData(userObjID)
+    if err != nil {
+        log.Println("Couldn't fetch workout data")
+        log.Println(err)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(session)
+}
