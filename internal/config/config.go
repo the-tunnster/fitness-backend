@@ -12,9 +12,15 @@ type Config struct {
 	MongoDB  string
 
 	Port string
+
+	OIDCClientID     string
+	OIDCClientSecret string
+	OIDCRedirectURL  string
 }
 
-func LoadConfig() *Config {
+var AppConfig Config
+
+func LoadConfig() {
 	log.Println("Loading .env file...")
 	err := godotenv.Load()
 	if err != nil {
@@ -25,14 +31,21 @@ func LoadConfig() *Config {
 	db := getEnvWithDefault("MONGODB_DBNAME", "fitness_app")
 	port := getEnvWithDefault("PORT", "8080")
 
+	oidcClientID := getEnvWithDefault("OIDC_CLIENT_ID", "")
+	oidcClientSecret := getEnvWithDefault("OIDC_CLIENT_SECRET", "")
+	oidcRedirectURL := getEnvWithDefault("OIDC_REDIRECT_URL", "")
+
 	if uri == "" || db == "" {
 		log.Fatal("Missing environment variables: MONGODB_URI and/or MONGODB_DBNAME")
 	}
 
-	return &Config{
+	AppConfig = Config{
 		MongoURI: uri,
 		MongoDB:  db,
 		Port:     port,
+		OIDCClientID: oidcClientID,
+		OIDCClientSecret: oidcClientSecret,
+		OIDCRedirectURL: oidcRedirectURL,
 	}
 }
 
