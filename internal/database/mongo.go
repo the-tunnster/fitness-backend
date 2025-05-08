@@ -14,7 +14,9 @@ import (
 var MongoClient *mongo.Client
 var MongoDatabase *mongo.Database
 
-func InitMongo(cfg *config.Config) {
+func InitMongo() {
+    cfg := config.AppConfig
+
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
