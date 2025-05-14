@@ -40,6 +40,37 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func UpdateExerciseHandler(w http.ResponseWriter, r *http.Request) {
+	exerciseID := r.URL.Query().Get("exercise_id")
+
+	if exerciseID == "" {
+		http.Error(w, "Missing user_id or routine_id", http.StatusBadRequest)
+		return
+	}
+
+	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
+	if err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
+	var updates bson.M
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	updates["updatedAt"] = time.Now()
+
+	err = database.UpdateExercise(exerciseObjID, updates)
+	if err != nil {
+		http.Error(w, "Failed to update exercise", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func UpdateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	routineID := r.URL.Query().Get("routine_id")
@@ -64,7 +95,7 @@ func UpdateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 
 	updates["updatedAt"] = time.Now()
 
-	err = database.UpdateRoutine(userObjID, routineObjID, updates)
+	err = database.UpdateRoutine(routineObjID, userObjID, updates)
 	if err != nil {
 		http.Error(w, "Failed to update routine", http.StatusInternalServerError)
 		return
