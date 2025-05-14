@@ -18,7 +18,7 @@ func UpsertSession(session models.Session) (err error) {
 
 	collection := GetCollection("sessions")
 
-	filter := bson.M{"userId": session.UserID}
+	filter := bson.M{"userID": session.UserID}
 	update := bson.M{"$set": session}
 	opts := options.Update().SetUpsert(true)
 
@@ -52,6 +52,34 @@ func UpdateUser(userID primitive.ObjectID, updates bson.M) (err error) {
 	return
 }
 
+func UpdateExercise(exerciseID primitive.ObjectID, updates bson.M) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("exercises")
+
+	result, err := collection.UpdateOne(ctx,
+		bson.M{
+			"_id":    exerciseID,
+		},
+		bson.M{
+			"$set": updates,
+		},
+	)
+
+	if err != nil {
+		log.Println("Error updating exercise")
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		log.Println("No mathcing exercise id found")
+		return
+	}
+	
+	return
+}
+
 func UpdateRoutine(routineID, userID primitive.ObjectID, updates bson.M) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -61,7 +89,7 @@ func UpdateRoutine(routineID, userID primitive.ObjectID, updates bson.M) (err er
 	result, err := collection.UpdateOne(ctx,
 		bson.M{
 			"_id":    routineID,
-			"userId": userID,
+			"userID": userID,
 		},
 		bson.M{
 			"$set": updates,
