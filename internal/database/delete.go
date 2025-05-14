@@ -16,7 +16,7 @@ func DeleteSession(userID primitive.ObjectID) (err error) {
 
 	collection := GetCollection("sessions")
 
-	_, err = collection.DeleteOne(ctx, bson.M{"userId": userID})
+	_, err = collection.DeleteOne(ctx, bson.M{"userID": userID})
 	return
 }
 
@@ -28,7 +28,7 @@ func DeleteRoutine(userID, routiuneID primitive.ObjectID) (err error) {
 
 	result, err := collection.DeleteOne(ctx, bson.M{
 		"_id":    routiuneID,
-		"userId": userID,
+		"userID": userID,
 	})
 
 	if err != nil {
