@@ -31,7 +31,7 @@ func GetUserRoutines(userID primitive.ObjectID) (routineList []models.Routine, e
 
 	collection := GetCollection("routines")
 
-	cursor, err := collection.Find(ctx, bson.M{"userId": userID})
+	cursor, err := collection.Find(ctx, bson.M{"userID": userID})
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func GetRoutineData(userID, routineID primitive.ObjectID) (routine models.FullRo
 
 	err = collection.FindOne(ctx, bson.M{
         "_id":    routineID,
-        "userId": userID,
+        "userID": userID,
     }).Decode(&routine)
 
 	return 
@@ -73,7 +73,7 @@ func GetUserWorkouts(userID primitive.ObjectID) (workoutList []models.Workout, e
 	collection := GetCollection("workouts")
 
 	cursor, err := collection.Find(ctx, bson.M{
-		"userId": userID,
+		"userID": userID,
 	})
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func GetWorkoutData(userID, workoutID primitive.ObjectID) (workout models.FullWo
 
 	err = collection.FindOne(ctx, bson.M{
 		"_id": workoutID,
-		"userId": userID,
+		"userID": userID,
 	}).Decode(&workout)
 
 	return
@@ -115,7 +115,7 @@ func GetSessionData(userID primitive.ObjectID) (session models.Session, err erro
 
 	collection := GetCollection("sessions")
 
-	err = collection.FindOne(ctx, bson.M{"userId":userID}).Decode(&session)
+	err = collection.FindOne(ctx, bson.M{"userID":userID}).Decode(&session)
 
 	return
 }
