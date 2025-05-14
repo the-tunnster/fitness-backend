@@ -8,8 +8,8 @@ import (
 
 type Session struct {
 	ID              primitive.ObjectID `bson:"_id,omitempty"`
-	UserID          primitive.ObjectID `bson:"userId"`
-	ActiveRoutineID primitive.ObjectID `bson:"activeRoutineId,omitempty"`
+	UserID          primitive.ObjectID `bson:"userID"`
+	ActiveRoutineID primitive.ObjectID `bson:"activeRoutineID,omitempty"`
 	WorkoutDraft    WorkoutDraft       `bson:"workoutDraft,omitempty"`
 	CurrentStep     WorkoutStep        `bson:"currentStep,omitempty"`
 	Stage           string             `bson:"stage"`
@@ -23,7 +23,7 @@ type WorkoutDraft struct {
 }
 
 type ExerciseProgress struct {
-	ExerciseID primitive.ObjectID `bson:"exerciseId"`
+	ExerciseID primitive.ObjectID `bson:"exerciseID"`
 	Sets       []SetProgress      `bson:"sets"`
 }
 
