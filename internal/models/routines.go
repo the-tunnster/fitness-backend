@@ -4,7 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Routine struct {
     ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-    UserID      primitive.ObjectID `bson:"userId" json:"user_id"`
+    UserID      primitive.ObjectID `bson:"userID" json:"user_id"`
     Name        string             `bson:"name" json:"name"`
     Description string             `bson:"description,omitempty" json:"description,omitempty"`
     CreatedAt   primitive.DateTime `bson:"createdAt" json:"createdAt"`
@@ -12,14 +12,14 @@ type Routine struct {
 }
 
 type RoutineExercise struct {
-    ExerciseID  primitive.ObjectID `bson:"exerciseId" json:"exercise_id"`
+    ExerciseID  primitive.ObjectID `bson:"exerciseID" json:"exercise_id"`
     TargetSets  int                `bson:"targetSets" json:"target_sets"`
     TargetReps  []int              `bson:"targetReps" json:"target_reps"`
 }
 
 type FullRoutine struct {
     ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-    UserID      primitive.ObjectID `bson:"userId" json:"user_id"`
+    UserID      primitive.ObjectID `bson:"userID" json:"user_id"`
     Name        string             `bson:"name" json:"name"`
     Description string             `bson:"description,omitempty" json:"description,omitempty"`
     Exercises   []RoutineExercise  `bson:"exercises" json:"exercises"`
