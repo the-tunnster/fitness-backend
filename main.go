@@ -6,16 +6,12 @@ import (
 
 	"fitness-tracker/internal/config"
 	"fitness-tracker/internal/database"
-	"fitness-tracker/internal/login"
 	"fitness-tracker/internal/routes"
 )
 
 func main() {
 	log.Println("Loding app config...")
 	config.LoadConfig()
-
-	log.Println("Initialising OIDC...")
-	login.InitOIDC()
 
 	log.Println("Initialising database connection...")
 	database.InitMongo()
