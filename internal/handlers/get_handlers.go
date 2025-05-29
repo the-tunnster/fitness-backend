@@ -17,7 +17,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    user, err := database.GetUser(emailID)
+    user, err := database.GetUserByEmail(emailID)
     if err != nil {
         log.Println("Couldn't fetch user info")
         log.Println(err)
