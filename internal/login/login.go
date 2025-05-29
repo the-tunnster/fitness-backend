@@ -1,46 +1,59 @@
 package login
 
 import (
-	"log"
-	"context"
-	
+	"time"
+	"errors"
+
 	"fitness-tracker/internal/config"
 
-	"golang.org/x/oauth2"
-	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-type OIDCConfig struct {
-	Provider     *oidc.Provider
-	Verifier     *oidc.IDTokenVerifier
-	OAuth2Config oauth2.Config
+var jwtSecret = config.AppConfig.JWTSecret
+
+type Claims struct {
+	UserID string `json:"user_id"`
+	jwt.RegisteredClaims
 }
 
-var OIDC OIDCConfig
-
-func InitOIDC() {
-	cfg := config.AppConfig
-
-	ctx := context.Background()
-
-	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
-	if err != nil {
-		log.Fatalf("Failed to create OIDC provider: %v", err)
+func GenerateJWT(userID string) (string, error) {
+	claims := Claims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
 	}
 
-	verifier := provider.Verifier(&oidc.Config{ClientID: cfg.OIDCClientID})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
+}
 
-	oauth2Config := oauth2.Config{
-		ClientID:     cfg.OIDCClientID,
-		ClientSecret: cfg.OIDCClientSecret,
-		RedirectURL:  cfg.OIDCRedirectURL,
-		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+func ParseJWT(tokenStr string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, err
+}
+
+func ValidateJWT(tokenString string) (string, error) {
+	claims := &jwt.RegisteredClaims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		return "", errors.New("invalid token")
 	}
 
-	OIDC = OIDCConfig{
-		OAuth2Config : oauth2Config,
-		Verifier : verifier,
-		Provider : provider,
+	// Check expiration
+	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
+		return "", errors.New("token expired")
 	}
+
+	return claims.Subject, nil // Subject is the userID
 }
