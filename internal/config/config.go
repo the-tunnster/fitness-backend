@@ -13,6 +13,7 @@ type Config struct {
 
 	Port string
 
+	JWTSecret        string
 	OIDCClientID     string
 	OIDCClientSecret string
 	OIDCRedirectURL  string
@@ -31,6 +32,7 @@ func LoadConfig() {
 	db := getEnvWithDefault("MONGODB_DBNAME", "fitness_app")
 	port := getEnvWithDefault("PORT", "8080")
 
+	jwtSecret := getEnvWithDefault("JWT_SECRET", "")
 	oidcClientID := getEnvWithDefault("OIDC_CLIENT_ID", "")
 	oidcClientSecret := getEnvWithDefault("OIDC_CLIENT_SECRET", "")
 	oidcRedirectURL := getEnvWithDefault("OIDC_REDIRECT_URL", "")
@@ -40,12 +42,13 @@ func LoadConfig() {
 	}
 
 	AppConfig = Config{
-		MongoURI: uri,
-		MongoDB:  db,
-		Port:     port,
-		OIDCClientID: oidcClientID,
+		MongoURI:         uri,
+		MongoDB:          db,
+		Port:             port,
+		JWTSecret:        jwtSecret,
+		OIDCClientID:     oidcClientID,
 		OIDCClientSecret: oidcClientSecret,
-		OIDCRedirectURL: oidcRedirectURL,
+		OIDCRedirectURL:  oidcRedirectURL,
 	}
 }
 
