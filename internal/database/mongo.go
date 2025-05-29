@@ -29,9 +29,9 @@ func InitMongo() {
     MongoClient = client
     MongoDatabase = client.Database(cfg.MongoDB)
 
-    if err := InitIndexes(ctx, MongoDatabase); err != nil {
-        log.Fatalf("Failed to initialize MongoDB indexes: %v", err)
-    }
+    //if err := InitIndexes(ctx, MongoDatabase); err != nil {
+    //   log.Fatalf("Failed to initialize MongoDB indexes: %v", err)
+    //}
 }
 
 func GetCollection(name string) *mongo.Collection {
