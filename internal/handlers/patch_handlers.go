@@ -103,3 +103,33 @@ func UpdateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
+	sessionID := r.URL.Query().Get("session_id")
+	if sessionID == "" {
+		http.Error(w, "Missing session_id", http.StatusBadRequest)
+		return
+	}
+
+	sessionObjID, err := primitive.ObjectIDFromHex(sessionID)
+	if err != nil {
+		http.Error(w, "Invalid session_id format", http.StatusBadRequest)
+		return
+	}
+
+	var updates bson.M
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	updates["updatedAt"] = time.Now()
+
+	err = database.UpdateSession(sessionObjID, updates)
+	if err != nil {
+		http.Error(w, "Failed to update session", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
