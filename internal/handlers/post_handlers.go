@@ -65,7 +65,7 @@ func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	var workout models.FullWorkout
 
-		if err := json.NewDecoder(r.Body).Decode(&workout); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&workout); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
@@ -78,4 +78,22 @@ func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(workoutID.Hex())
+}
+
+func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
+	var session models.Session
+
+	if err := json.NewDecoder(r.Body).Decode(&session); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := database.CreateSession(session)
+	if err != nil {
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(sessionID.Hex())
 }
