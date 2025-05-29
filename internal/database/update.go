@@ -108,3 +108,32 @@ func UpdateRoutine(routineID, userID primitive.ObjectID, updates bson.M) (err er
 	
 	return
 }
+
+func UpdateSession(sessionID primitive.ObjectID, updates bson.M) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("sessions")
+
+
+	result, err := collection.UpdateOne(ctx,
+		bson.M{
+			"_id":    sessionID,
+		},
+		bson.M{
+			"$set": updates,
+		},
+	)
+
+	if err != nil {
+		log.Println("Error updating session")
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		log.Println("No mathcing session found")
+		return
+	}
+	
+	return
+}
