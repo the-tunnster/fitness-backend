@@ -6,11 +6,11 @@ type Exercise struct {
 	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name            string             `bson:"name" json:"name"`
 	Category        string             `bson:"category" json:"category"`
-	PrimaryMuscle   string             `bson:"primaryMuscle" json:"primaryMuscle"`
-	SecondaryMuscle string             `bson:"secondaryMuscle" json:"secondaryMuscle"`
-	TertiaryMuscle  string             `bson:"tertiaryMuscle" json:"tertiaryMuscle"`
+	PrimaryMuscle   string             `bson:"primaryMuscle" json:"primary_muscle"`
+	SecondaryMuscle string             `bson:"secondaryMuscle" json:"secondary_muscle"`
+	TertiaryMuscle  string             `bson:"tertiaryMuscle" json:"tertiary_muscle"`
 	Variations      []string           `bson:"variations" json:"variations"`
 	Equipment       []string           `bson:"equipment" json:"equipment"`
-	CreatedAt       primitive.DateTime `bson:"createdAt" json:"createdAt"`
-	UpdatedAt       primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
+	CreatedAt       primitive.DateTime `bson:"createdAt" json:"created_at"`
+	UpdatedAt       primitive.DateTime `bson:"updatedAt" json:"updated_at"`
 }
