@@ -4,7 +4,6 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type User struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	HashedPassword string             `bson:"hashedPassword" json:"-"`
 	Username       string             `bson:"username" json:"username"`
 	Email          string             `bson:"email" json:"email"`
 	Gender         string             `bson:"gender" json:"gender"`
