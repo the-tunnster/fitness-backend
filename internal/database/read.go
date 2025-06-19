@@ -1,9 +1,9 @@
 package database
 
 import (
+	"context"
 	"log"
 	"time"
-	"context"
 
 	"fitness-tracker/internal/models"
 
@@ -73,11 +73,11 @@ func GetRoutineData(userID, routineID primitive.ObjectID) (routine models.FullRo
 	collection := GetCollection("routines")
 
 	err = collection.FindOne(ctx, bson.M{
-        "_id":    routineID,
-        "userID": userID,
-    }).Decode(&routine)
+		"_id":    routineID,
+		"userID": userID,
+	}).Decode(&routine)
 
-	return 
+	return
 }
 
 func GetUserWorkouts(userID primitive.ObjectID) (workoutList []models.Workout, err error) {
@@ -100,13 +100,13 @@ func GetUserWorkouts(userID primitive.ObjectID) (workoutList []models.Workout, e
 		}
 		workoutList = append(workoutList, workout)
 	}
-	
+
 	if err := cursor.Err(); err != nil {
 		log.Println("Error decoding some documents")
 		log.Println(err)
 	}
 
-	return 
+	return
 }
 
 func GetWorkoutData(userID, workoutID primitive.ObjectID) (workout models.FullWorkout, err error) {
@@ -116,7 +116,7 @@ func GetWorkoutData(userID, workoutID primitive.ObjectID) (workout models.FullWo
 	collection := GetCollection("workouts")
 
 	err = collection.FindOne(ctx, bson.M{
-		"_id": workoutID,
+		"_id":    workoutID,
 		"userID": userID,
 	}).Decode(&workout)
 
@@ -129,7 +129,63 @@ func GetSessionData(userID primitive.ObjectID) (session models.Session, err erro
 
 	collection := GetCollection("sessions")
 
-	err = collection.FindOne(ctx, bson.M{"userID":userID}).Decode(&session)
+	err = collection.FindOne(ctx, bson.M{"userID": userID}).Decode(&session)
+
+	return
+}
+
+func GetExerciseList() (exercises []models.Exercise) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("exercises")
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil
+	}
+
+	for cursor.Next(ctx) {
+		var exercise models.Exercise
+		if err := cursor.Decode(&exercise); err != nil {
+			continue
+		}
+		exercises = append(exercises, exercise)
+	}
+
+	return
+}
+
+func GetExerciseID(exerciseName string) (exerciseID string, err error){
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("exercises")
+
+	var exercise models.Exercise
+
+	err = collection.FindOne(ctx, bson.M{
+		"name":    exerciseName,
+	}).Decode(&exercise)
+
+	exerciseID = exercise.ID.Hex()
+
+	return
+}
+
+func GetExerciseName(exerciseID primitive.ObjectID) (exerciseName string, err error){
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("exercises")
+
+	var exercise models.Exercise
+
+	err = collection.FindOne(ctx, bson.M{
+		"_id":    exerciseID,
+	}).Decode(&exercise)
+
+	exerciseName = exercise.Name
 
 	return
 }
