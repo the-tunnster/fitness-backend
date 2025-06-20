@@ -1,6 +1,8 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Routine struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -27,3 +29,18 @@ type FullRoutine struct {
 	CreatedAt   primitive.DateTime `bson:"createdAt" json:"created_at"`
 	UpdatedAt   primitive.DateTime `bson:"updatedAt" json:"updated_at"`
 }
+
+type RoutineExerciseDTO struct {
+		ExerciseID string `json:"exercise_id"`
+		Name       string `json:"name"`
+		TargetSets int    `json:"target_sets"`
+		TargetReps []int  `json:"target_reps"`
+	}
+
+	type FullRoutineDTO struct {
+		ID          *string              `json:"id"`
+		UserID      string               `json:"user_id"`
+		Name        string               `json:"name"`
+		Description string               `json:"description"`
+		Exercises   []RoutineExerciseDTO `json:"exercises"`
+	}
