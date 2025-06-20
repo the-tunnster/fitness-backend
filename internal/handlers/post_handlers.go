@@ -3,9 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"fitness-tracker/internal/database"
 	"fitness-tracker/internal/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,14 +48,46 @@ func CreateExerciseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
-	var routine models.FullRoutine
-
-	if err := json.NewDecoder(r.Body).Decode(&routine); err != nil {
+	var dto models.FullRoutineDTO
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	routineID, err := database.CreateRoutine(routine)
+	userObjID, err := primitive.ObjectIDFromHex(dto.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	var exercises []models.RoutineExercise
+	for _, ex := range dto.Exercises {
+		exID, err := primitive.ObjectIDFromHex(ex.ExerciseID)
+		if err != nil {
+			http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+			return
+		}
+
+		exercises = append(exercises, models.RoutineExercise{
+			ExerciseID: exID,
+			Name:       ex.Name,
+			TargetSets: ex.TargetSets,
+			TargetReps: ex.TargetReps,
+		})
+	}
+
+	// Build full routine
+	newRoutine := models.FullRoutine{
+		UserID:      userObjID,
+		Name:        dto.Name,
+		Description: dto.Description,
+		Exercises:   exercises,
+		CreatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+	}
+
+	// Insert into DB
+	routineID, err := database.CreateRoutine(newRoutine)
 	if err != nil {
 		http.Error(w, "Failed to create routine", http.StatusInternalServerError)
 		return
