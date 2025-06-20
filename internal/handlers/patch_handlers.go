@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"fitness-tracker/internal/database"
+	"fitness-tracker/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -93,7 +94,58 @@ func UpdateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updates["updatedAt"] = time.Now()
+	// Convert exercises (if present)
+	if rawExercises, ok := updates["exercises"]; ok {
+		exList, ok := rawExercises.([]interface{})
+		if !ok {
+			http.Error(w, "Invalid format for exercises", http.StatusBadRequest)
+			return
+		}
+
+		var parsedExercises []models.RoutineExercise
+
+		for _, ex := range exList {
+			exMap, ok := ex.(map[string]interface{})
+			if !ok {
+				http.Error(w, "Invalid exercise object", http.StatusBadRequest)
+				return
+			}
+
+			exIDStr, ok := exMap["exercise_id"].(string)
+			if !ok {
+				http.Error(w, "exercise_id must be a string", http.StatusBadRequest)
+				return
+			}
+
+			exID, err := primitive.ObjectIDFromHex(exIDStr)
+			if err != nil {
+				http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+				return
+			}
+
+			name, _ := exMap["name"].(string)
+			targetSets, _ := exMap["target_sets"].(float64)
+			rawReps, _ := exMap["target_reps"].([]interface{})
+
+			var targetReps []int
+			for _, r := range rawReps {
+				if repFloat, ok := r.(float64); ok {
+					targetReps = append(targetReps, int(repFloat))
+				}
+			}
+
+			parsedExercises = append(parsedExercises, models.RoutineExercise{
+				ExerciseID: exID,
+				Name:       name,
+				TargetSets: int(targetSets),
+				TargetReps: targetReps,
+			})
+		}
+
+		updates["exercises"] = parsedExercises
+	}
+
+	updates["updatedAt"] = primitive.NewDateTimeFromTime(time.Now())
 
 	err = database.UpdateRoutine(routineObjID, userObjID, updates)
 	if err != nil {
