@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"fitness-tracker/internal/database"
@@ -158,8 +160,10 @@ func UpdateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session_id")
-	if sessionID == "" {
-		http.Error(w, "Missing session_id", http.StatusBadRequest)
+	exerciseIndexStr := r.URL.Query().Get("exercise_index")
+
+	if sessionID == "" || "exercise_index" == "" {
+		http.Error(w, "Missing session_id or exercise_index", http.StatusBadRequest)
 		return
 	}
 
@@ -169,13 +173,40 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updates bson.M
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+	exIndex, err := strconv.Atoi(exerciseIndexStr)
+	if err != nil || exIndex < 0 {
+		http.Error(w, "Invalid exercise_index", http.StatusBadRequest)
 		return
 	}
 
-	updates["updatedAt"] = time.Now()
+	var dto models.WorkoutExerciseDTO
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	exerciseObjID, err := primitive.ObjectIDFromHex(dto.ExerciseID)
+	if err != nil {
+		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+		return
+	}
+
+	var sets []models.WorkoutSet
+	for _, s := range dto.Sets {
+		sets = append(sets, models.WorkoutSet(s))
+	}
+
+	updatedExercise := models.WorkoutExercise{
+	ExerciseID: exerciseObjID,
+	Equipment:  dto.Equipment,
+	Variation:  dto.Variation,
+	Sets:       sets,
+}
+
+	updates := bson.M{
+		fmt.Sprintf("exercises.%d", exIndex): updatedExercise,
+		"last_update":                         time.Now(),
+	}
 
 	err = database.UpdateSession(sessionObjID, updates)
 	if err != nil {
