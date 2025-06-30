@@ -217,7 +217,7 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    session, err := database.GetSessionData(userObjID)
+    session, err := database.GetUserSessionData(userObjID)
     if err != nil {
         log.Println("Couldn't fetch workout data")
         log.Println(err)
