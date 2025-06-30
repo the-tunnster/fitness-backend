@@ -90,64 +90,31 @@ func UpdateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updates bson.M
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+	var updated_exercise_data []models.RoutineExerciseDTO
+	if err := json.NewDecoder(r.Body).Decode(&updated_exercise_data); err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
-	// Convert exercises (if present)
-	if rawExercises, ok := updates["exercises"]; ok {
-		exList, ok := rawExercises.([]interface{})
-		if !ok {
-			http.Error(w, "Invalid format for exercises", http.StatusBadRequest)
+	var updated_exercises []models.RoutineExercise
+	for _, exercise := range updated_exercise_data {
+		exerciseObjID, err := primitive.ObjectIDFromHex(exercise.ExerciseID)
+		if err != nil {
+			http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
 			return
 		}
 
-		var parsedExercises []models.RoutineExercise
-
-		for _, ex := range exList {
-			exMap, ok := ex.(map[string]interface{})
-			if !ok {
-				http.Error(w, "Invalid exercise object", http.StatusBadRequest)
-				return
-			}
-
-			exIDStr, ok := exMap["exercise_id"].(string)
-			if !ok {
-				http.Error(w, "exercise_id must be a string", http.StatusBadRequest)
-				return
-			}
-
-			exID, err := primitive.ObjectIDFromHex(exIDStr)
-			if err != nil {
-				http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
-				return
-			}
-
-			name, _ := exMap["name"].(string)
-			targetSets, _ := exMap["target_sets"].(float64)
-			rawReps, _ := exMap["target_reps"].([]interface{})
-
-			var targetReps []int
-			for _, r := range rawReps {
-				if repFloat, ok := r.(float64); ok {
-					targetReps = append(targetReps, int(repFloat))
-				}
-			}
-
-			parsedExercises = append(parsedExercises, models.RoutineExercise{
-				ExerciseID: exID,
-				Name:       name,
-				TargetSets: int(targetSets),
-				TargetReps: targetReps,
-			})
-		}
-
-		updates["exercises"] = parsedExercises
+		updated_exercises = append(updated_exercises, models.RoutineExercise{
+			ExerciseID: exerciseObjID,
+			Name:       exercise.Name,
+			TargetSets: exercise.TargetSets,
+			TargetReps: exercise.TargetReps,
+		})
 	}
 
-	updates["updatedAt"] = primitive.NewDateTimeFromTime(time.Now())
+	updates := bson.M{
+		"exercises": updated_exercises,
+	}
 
 	err = database.UpdateRoutine(routineObjID, userObjID, updates)
 	if err != nil {
@@ -162,7 +129,7 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session_id")
 	exerciseIndexStr := r.URL.Query().Get("exercise_index")
 
-	if sessionID == "" || "exercise_index" == "" {
+	if sessionID == "" || exerciseIndexStr == "" {
 		http.Error(w, "Missing session_id or exercise_index", http.StatusBadRequest)
 		return
 	}
@@ -179,33 +146,28 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto models.WorkoutExerciseDTO
-	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+	var updated_exercise_data models.WorkoutExerciseDTO
+	if err := json.NewDecoder(r.Body).Decode(&updated_exercise_data); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	exerciseObjID, err := primitive.ObjectIDFromHex(dto.ExerciseID)
+	exerciseObjID, err := primitive.ObjectIDFromHex(updated_exercise_data.ExerciseID)
 	if err != nil {
 		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
 		return
 	}
 
-	var sets []models.WorkoutSet
-	for _, s := range dto.Sets {
-		sets = append(sets, models.WorkoutSet(s))
-	}
-
 	updatedExercise := models.WorkoutExercise{
-	ExerciseID: exerciseObjID,
-	Equipment:  dto.Equipment,
-	Variation:  dto.Variation,
-	Sets:       sets,
-}
+		ExerciseID: exerciseObjID,
+		Equipment:  updated_exercise_data.Equipment,
+		Variation:  updated_exercise_data.Variation,
+		Sets:       updated_exercise_data.Sets,
+	}
 
 	updates := bson.M{
 		fmt.Sprintf("exercises.%d", exIndex): updatedExercise,
-		"last_update":                         time.Now(),
+		"last_update":                        primitive.NewDateTimeFromTime(time.Now()),
 	}
 
 	err = database.UpdateSession(sessionObjID, updates)
