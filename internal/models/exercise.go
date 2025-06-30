@@ -11,6 +11,4 @@ type Exercise struct {
 	TertiaryMuscle  string             `bson:"tertiaryMuscle" json:"tertiary_muscle"`
 	Variations      []string           `bson:"variations" json:"variations"`
 	Equipment       []string           `bson:"equipment" json:"equipment"`
-	CreatedAt       primitive.DateTime `bson:"createdAt" json:"created_at"`
-	UpdatedAt       primitive.DateTime `bson:"updatedAt" json:"updated_at"`
 }
