@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -48,45 +49,41 @@ func CreateExerciseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
-	var dto models.FullRoutineDTO
-	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-
-	userObjID, err := primitive.ObjectIDFromHex(dto.UserID)
+	userID := r.URL.Query().Get("user_id")
+	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		http.Error(w, "Invalid user_id", http.StatusBadRequest)
 		return
 	}
 
+	var routine_data models.FullRoutineDTO
+	if err := json.NewDecoder(r.Body).Decode(&routine_data); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
 	var exercises []models.RoutineExercise
-	for _, ex := range dto.Exercises {
-		exID, err := primitive.ObjectIDFromHex(ex.ExerciseID)
+	for _, exercise := range routine_data.Exercises {
+		exerciseObjID, err := primitive.ObjectIDFromHex(exercise.ExerciseID)
 		if err != nil {
 			http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
 			return
 		}
 
 		exercises = append(exercises, models.RoutineExercise{
-			ExerciseID: exID,
-			Name:       ex.Name,
-			TargetSets: ex.TargetSets,
-			TargetReps: ex.TargetReps,
+			ExerciseID: exerciseObjID,
+			Name:       exercise.Name,
+			TargetSets: exercise.TargetSets,
+			TargetReps: exercise.TargetReps,
 		})
 	}
 
-	// Build full routine
 	newRoutine := models.FullRoutine{
 		UserID:      userObjID,
-		Name:        dto.Name,
-		Description: dto.Description,
+		Name:        routine_data.Name,
 		Exercises:   exercises,
-		CreatedAt:   primitive.NewDateTimeFromTime(time.Now()),
-		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
 	}
 
-	// Insert into DB
 	routineID, err := database.CreateRoutine(newRoutine)
 	if err != nil {
 		http.Error(w, "Failed to create routine", http.StatusInternalServerError)
@@ -97,25 +94,7 @@ func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(routineID.Hex())
 }
 
-func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
-	var workout models.FullWorkout
-
-	if err := json.NewDecoder(r.Body).Decode(&workout); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-
-	workoutID, err := database.CreateWorkout(workout)
-	if err != nil {
-		http.Error(w, "Failed to create workout", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(workoutID.Hex())
-}
-
-func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
+func CreateWorkoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	routineID := r.URL.Query().Get("routine_id")
 
@@ -136,49 +115,99 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var exercisesDTO []models.WorkoutExerciseDTO
-	if err := json.NewDecoder(r.Body).Decode(&exercisesDTO); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+	full_routine, err := database.GetRoutineData(userObjID, routineObjID)
+	if err != nil {
+		http.Error(w, "Couldn't find a matching routine for the provided routine_id", http.StatusBadRequest)
 		return
 	}
 
-	var exercises []models.WorkoutExercise
-	for _, dto := range exercisesDTO {
-		exID, err := primitive.ObjectIDFromHex(dto.ExerciseID)
-		if err != nil {
-			http.Error(w, "Invalid exercise_id in exercises", http.StatusBadRequest)
-			return
-		}
+	var workout_exercises []models.WorkoutExercise
+	for _, routine_exercise := range(full_routine.Exercises) {
 
-		var sets []models.WorkoutSet
-		for _, s := range dto.Sets {
-			sets = append(sets, models.WorkoutSet{
-				SetNumber: s.SetNumber,
-				Reps:      s.Reps,
-				Weight:    s.Weight,
+		var exercise_sets []models.WorkoutSet
+		for i := 0 ; i < routine_exercise.TargetSets ; i++ {
+			exercise_sets = append(exercise_sets, models.WorkoutSet{
+				Reps: routine_exercise.TargetReps,
+				Weight: 0.0,
 			})
 		}
-
-		exercises = append(exercises, models.WorkoutExercise{
-			ExerciseID: exID,
-			Sets:       sets,
+		
+		workout_exercises = append(workout_exercises, models.WorkoutExercise{
+			ExerciseID: routine_exercise.ExerciseID,
+			Equipment: "none",
+			Variation: "none",
+			Sets: exercise_sets,
 		})
+
 	}
 
-	newSession := models.WorkoutSession{
-		UserID:        userObjID,
-		RoutineID:     routineObjID,
-		Exercises:     exercises,
+	workout_session := models.WorkoutSession{
+		UserID: userObjID,
+		RoutineID: routineObjID,
+		Exercises: workout_exercises,
 		ExerciseIndex: 0,
-		LastUpdate:    time.Now(),
+		LastUpdate: primitive.NewDateTimeFromTime(time.Now()),
 	}
 
-	sessionID, err := database.CreateSession(newSession)
+	sessionID, err := database.CreateSession(workout_session)
 	if err != nil {
 		http.Error(w, "Failed to create session", http.StatusInternalServerError)
 		return
 	}
 
+	log.Print("succesfully created workout session", sessionID)
+
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(sessionID.Hex())
+}
+
+func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
+	sessionID := r.URL.Query().Get("session_id")
+	sessionObjID, err := primitive.ObjectIDFromHex(sessionID)
+	if err != nil {
+		http.Error(w, "Invalid session_id", http.StatusBadRequest)
+		return
+	}
+
+	workout_session, err := database.GetSessionData(sessionObjID)
+	if err != nil {
+		http.Error(w, "Failed to find session", http.StatusInternalServerError)
+		return
+	}
+
+	var workout_exercises []models.WorkoutExercise
+	for _, exercise := range(workout_session.Exercises) {
+
+		var exercise_sets []models.WorkoutSet
+		for i := 0 ; i < len(exercise.Sets) ; i++ {
+			exercise_sets = append(exercise_sets, models.WorkoutSet{
+				Reps: exercise.Sets[i].Reps,
+				Weight: exercise.Sets[i].Weight,
+			})
+		}
+
+		workout_exercises = append(workout_exercises, models.WorkoutExercise{
+			ExerciseID: exercise.ExerciseID,
+			Equipment: exercise.Equipment,
+			Variation: exercise.Variation,
+			Sets: exercise_sets,
+		})
+	}
+
+	workout := models.FullWorkout{
+		ID: primitive.NilObjectID,
+		UserID: workout_session.UserID,
+		RoutineID: workout_session.RoutineID,
+		WorkoutDate: primitive.NewDateTimeFromTime(time.Now()),
+		Exercises: workout_exercises,
+	}
+
+	workoutID, err := database.CreateWorkout(workout)
+	if err != nil {
+		http.Error(w, "Failed to create workout", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(workoutID.Hex())
 }
