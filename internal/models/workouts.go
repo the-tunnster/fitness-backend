@@ -14,11 +14,6 @@ type WorkoutSet struct {
 	Weight float64 `bson:"weight" json:"weight"`
 }
 
-type WorkoutSetDTO struct {
-	Reps   int     `json:"reps"`
-	Weight float64 `json:"weight"`
-}
-
 type WorkoutExercise struct {
 	ExerciseID primitive.ObjectID `bson:"exerciseID" json:"exercise_id"`
 	Equipment  string             `bson:"equipment" json:"equipment"`
@@ -27,10 +22,10 @@ type WorkoutExercise struct {
 }
 
 type WorkoutExerciseDTO struct {
-	ExerciseID string          `json:"exercise_id"`
-	Equipment  string          `bson:"equipment" json:"equipment"`
-	Variation  string          `bson:"variation" json:"variation"`
-	Sets       []WorkoutSetDTO `json:"sets"`
+	ExerciseID string       `json:"exercise_id"`
+	Equipment  string       `json:"equipment"`
+	Variation  string       `json:"variation"`
+	Sets       []WorkoutSet `json:"sets"`
 }
 
 type FullWorkout struct {
