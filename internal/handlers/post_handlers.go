@@ -134,8 +134,8 @@ func CreateWorkoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 		
 		workout_exercises = append(workout_exercises, models.WorkoutExercise{
 			ExerciseID: routine_exercise.ExerciseID,
-			Equipment: "none",
-			Variation: "none",
+			Equipment: "None",
+			Variation: "None",
 			Sets: exercise_sets,
 		})
 
