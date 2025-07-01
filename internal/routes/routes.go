@@ -16,6 +16,7 @@ func RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/exercise/id", handlers.GetExerciseIDHandler)
     mux.HandleFunc("/exercise/name", handlers.GetExerciseNameHandler)
     mux.HandleFunc("/exercise/list", handlers.GetExerciseListHandler)
+    mux.HandleFunc("/exercise/data", handlers.GetExerciseDataHandler)
     mux.HandleFunc("/exercise/create", handlers.CreateExerciseHandler)
     mux.HandleFunc("/exercise/update", handlers.UpdateExerciseHandler)
 
