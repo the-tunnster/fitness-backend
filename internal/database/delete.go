@@ -10,13 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func DeleteSession(userID primitive.ObjectID) (err error) {
+func DeleteSession(sessionID primitive.ObjectID) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := GetCollection("sessions")
 
-	_, err = collection.DeleteOne(ctx, bson.M{"userID": userID})
+	_, err = collection.DeleteOne(ctx, bson.M{"_id": sessionID})
 	return
 }
 
