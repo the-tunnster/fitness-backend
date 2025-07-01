@@ -35,6 +35,8 @@ func RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/session/data", handlers.GetSessionHandler)
     mux.HandleFunc("/session/create", handlers.CreateWorkoutSessionHandler)
     mux.HandleFunc("/session/update", handlers.UpdateSessionHandler)
+    mux.HandleFunc("/session/delete", handlers.DeleteSessionHandler)
+
 
     // AUTH
     mux.HandleFunc("/me", handlers.GetUserHandler)
