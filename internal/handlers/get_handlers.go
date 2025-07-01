@@ -88,6 +88,29 @@ func GetExerciseListHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(exerciseList)
 }
 
+func GetExerciseDataHandler(w http.ResponseWriter, r *http.Request) {
+    exerciseID := r.URL.Query().Get("exercise_id")
+    if exerciseID == "" {
+        http.Error(w, "Missing exercise_id parameter", http.StatusBadRequest)
+        return
+    }
+
+    exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
+    if err != nil {
+        http.Error(w, "Invalid exercise_id format", http.StatusBadRequest)
+        return
+    }
+
+    exercise, err := database.GetExerciseData(exerciseObjID)
+    if err != nil {
+        http.Error(w, "Couldn't find that exercise", http.StatusBadRequest)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(exercise)
+}
+
 
 func GetRoutineListHandler(w http.ResponseWriter, r *http.Request) {
     userID := r.URL.Query().Get("user_id")
