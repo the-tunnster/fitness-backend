@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -146,28 +145,31 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updated_exercise_data models.WorkoutExerciseDTO
+	var updated_exercise_data []models.WorkoutExerciseDTO
 	if err := json.NewDecoder(r.Body).Decode(&updated_exercise_data); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	exerciseObjID, err := primitive.ObjectIDFromHex(updated_exercise_data.ExerciseID)
-	if err != nil {
-		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
-		return
-	}
-
-	updatedExercise := models.WorkoutExercise{
-		ExerciseID: exerciseObjID,
-		Equipment:  updated_exercise_data.Equipment,
-		Variation:  updated_exercise_data.Variation,
-		Sets:       updated_exercise_data.Sets,
+	var updated_exercises []models.WorkoutExercise
+	for _, exercise := range updated_exercise_data {
+		exerciseObjID, err := primitive.ObjectIDFromHex(exercise.ExerciseID)
+		if err != nil {
+			http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+			return
+		}
+		updated_exercises = append(updated_exercises, models.WorkoutExercise{
+			ExerciseID: exerciseObjID,
+			Equipment:  exercise.Equipment,
+			Variation:  exercise.Variation,
+			Sets:       exercise.Sets,
+		})
 	}
 
 	updates := bson.M{
-		fmt.Sprintf("exercises.%d", exIndex): updatedExercise,
-		"last_update":                        primitive.NewDateTimeFromTime(time.Now()),
+		"exercises":      updated_exercises,
+		"exercise_index": exIndex,
+		"last_update":    primitive.NewDateTimeFromTime(time.Now()),
 	}
 
 	err = database.UpdateSession(sessionObjID, updates)
