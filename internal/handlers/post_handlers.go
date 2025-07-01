@@ -175,31 +175,12 @@ func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var workout_exercises []models.WorkoutExercise
-	for _, exercise := range(workout_session.Exercises) {
-
-		var exercise_sets []models.WorkoutSet
-		for i := 0 ; i < len(exercise.Sets) ; i++ {
-			exercise_sets = append(exercise_sets, models.WorkoutSet{
-				Reps: exercise.Sets[i].Reps,
-				Weight: exercise.Sets[i].Weight,
-			})
-		}
-
-		workout_exercises = append(workout_exercises, models.WorkoutExercise{
-			ExerciseID: exercise.ExerciseID,
-			Equipment: exercise.Equipment,
-			Variation: exercise.Variation,
-			Sets: exercise_sets,
-		})
-	}
-
 	workout := models.FullWorkout{
 		ID: primitive.NilObjectID,
 		UserID: workout_session.UserID,
 		RoutineID: workout_session.RoutineID,
 		WorkoutDate: primitive.NewDateTimeFromTime(time.Now()),
-		Exercises: workout_exercises,
+		Exercises: workout_session.Exercises,
 	}
 
 	workoutID, err := database.CreateWorkout(workout)
