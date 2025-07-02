@@ -1,251 +1,255 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
-    "encoding/json"
 
-    "fitness-tracker/internal/database"
+	"fitness-tracker/internal/database"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
-    emailID := r.URL.Query().Get("email")
-    if emailID == "" {
-        http.Error(w, "Missing email parameter", http.StatusBadRequest)
-        return
-    }
+	emailID := r.URL.Query().Get("email")
+	if emailID == "" {
+		http.Error(w, "Missing email parameter", http.StatusBadRequest)
+		return
+	}
 
-    user, err := database.GetUserByEmail(emailID)
-    if err != nil {
-        log.Println("Couldn't fetch user info")
-        log.Println(err)
-    }
+	user, err := database.GetUserByEmail(emailID)
+	if err != nil {
+		log.Println("Couldn't fetch user info")
+		log.Println(err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(user)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }
 
 func GetExerciseIDHandler(w http.ResponseWriter, r *http.Request) {
-    exerciseNames := r.URL.Query()["exercise_name"]
-    if len(exerciseNames) == 0 {
-        http.Error(w, "Missing exercise_name parameter(s)", http.StatusBadRequest)
-        return
-    }
+	exerciseNames := r.URL.Query()["exercise_name"]
+	if len(exerciseNames) == 0 {
+		http.Error(w, "Missing exercise_name parameter(s)", http.StatusBadRequest)
+		return
+	}
 
-    exerciseIDs := make([]string, len(exerciseNames))
-    
-    for i, v := range(exerciseNames) {
-        exercise_id, err := database.GetExerciseID(v)
-        if err == nil {
-            exerciseIDs[i] = exercise_id
-        } else {
-            exerciseIDs[i] = primitive.NilObjectID.Hex()
-        }
-    }
+	exerciseIDs := make([]string, len(exerciseNames))
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(exerciseIDs)
+	for i, v := range exerciseNames {
+		exercise_id, err := database.GetExerciseID(v)
+		if err == nil {
+			exerciseIDs[i] = exercise_id
+		} else {
+			exerciseIDs[i] = primitive.NilObjectID.Hex()
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exerciseIDs)
 }
 
 func GetExerciseNameHandler(w http.ResponseWriter, r *http.Request) {
-    exerciseIDs := r.URL.Query()["exercise_id"]
-    if len(exerciseIDs) == 0 {
-        http.Error(w, "Missing exercise_id parameter(s)", http.StatusBadRequest)
-        return
-    }
+	exerciseIDs := r.URL.Query()["exercise_id"]
+	if len(exerciseIDs) == 0 {
+		http.Error(w, "Missing exercise_id parameter(s)", http.StatusBadRequest)
+		return
+	}
 
-    exerciseObjIDs := make([]primitive.ObjectID, len(exerciseIDs))
-    exerciseNames := make([]string, len(exerciseIDs))
+	exerciseObjIDs := make([]primitive.ObjectID, len(exerciseIDs))
+	exerciseNames := make([]string, len(exerciseIDs))
 
-    for i, v := range(exerciseIDs) {
-        exerciseObjID, err := primitive.ObjectIDFromHex(v)
-        if err != nil {
-            exerciseObjIDs[i] = primitive.ObjectID{}
-        } else {
-            exerciseObjIDs[i] = exerciseObjID
-        }
-    }
+	for i, v := range exerciseIDs {
+		exerciseObjID, err := primitive.ObjectIDFromHex(v)
+		if err != nil {
+			exerciseObjIDs[i] = primitive.ObjectID{}
+		} else {
+			exerciseObjIDs[i] = exerciseObjID
+		}
+	}
 
-    for i, v := range(exerciseObjIDs) {
-        exerciseName, err := database.GetExerciseName(v)
-        if err == nil {
-            exerciseNames[i] = exerciseName
-        } else {
-            exerciseNames[i] = "unknown"
-        }
-    }
+	for i, v := range exerciseObjIDs {
+		exerciseName, err := database.GetExerciseName(v)
+		if err == nil {
+			exerciseNames[i] = exerciseName
+		} else {
+			exerciseNames[i] = "unknown"
+		}
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(exerciseNames)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exerciseNames)
 }
 
 func GetExerciseListHandler(w http.ResponseWriter, r *http.Request) {
-    exerciseList := database.GetExerciseList()
+	exerciseList := database.GetExerciseList()
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(exerciseList)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exerciseList)
 }
 
 func GetExerciseDataHandler(w http.ResponseWriter, r *http.Request) {
-    exerciseID := r.URL.Query().Get("exercise_id")
-    if exerciseID == "" {
-        http.Error(w, "Missing exercise_id parameter", http.StatusBadRequest)
-        return
-    }
+	exerciseID := r.URL.Query().Get("exercise_id")
+	if exerciseID == "" {
+		http.Error(w, "Missing exercise_id parameter", http.StatusBadRequest)
+		return
+	}
 
-    exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
-    if err != nil {
-        http.Error(w, "Invalid exercise_id format", http.StatusBadRequest)
-        return
-    }
+	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
+	if err != nil {
+		http.Error(w, "Invalid exercise_id format", http.StatusBadRequest)
+		return
+	}
 
-    exercise, err := database.GetExerciseData(exerciseObjID)
-    if err != nil {
-        http.Error(w, "Couldn't find that exercise", http.StatusBadRequest)
-        return
-    }
+	exercise, err := database.GetExerciseData(exerciseObjID)
+	if err != nil {
+		http.Error(w, "Couldn't find that exercise", http.StatusBadRequest)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(exercise)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exercise)
 }
 
-
 func GetRoutineListHandler(w http.ResponseWriter, r *http.Request) {
-    userID := r.URL.Query().Get("user_id")
-    if userID == "" {
-        http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
-        return
-    }
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		return
+	}
 
-    userObjID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        http.Error(w, "Invalid user_id format", http.StatusBadRequest)
-        return
-    }
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
 
-    routineList, err := database.GetUserRoutines(userObjID)
-    if err != nil {
-        log.Println("Couldn't fetch user routines")
-        log.Println(err)
-    }
+	routineList, err := database.GetUserRoutines(userObjID)
+	if err != nil {
+		log.Println("Couldn't fetch user routines")
+		log.Println(err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(routineList)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(routineList)
 }
 
 func GetRoutineDataHandler(w http.ResponseWriter, r *http.Request) {
-    userID := r.URL.Query().Get("user_id")
-    routineID := r.URL.Query().Get("routine_id")
+	userID := r.URL.Query().Get("user_id")
+	routineID := r.URL.Query().Get("routine_id")
 
-    if userID == "" || routineID == "" {
-        http.Error(w, "Missing user_id or routine_id", http.StatusBadRequest)
-        return
-    }
+	if userID == "" || routineID == "" {
+		http.Error(w, "Missing user_id or routine_id", http.StatusBadRequest)
+		return
+	}
 
-    userObjID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        http.Error(w, "Invalid user_id", http.StatusBadRequest)
-        return
-    }
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
 
-    routineObjID, err := primitive.ObjectIDFromHex(routineID)
-    if err != nil {
-        http.Error(w, "Invalid routine_id", http.StatusBadRequest)
-        return
-    }
+	routineObjID, err := primitive.ObjectIDFromHex(routineID)
+	if err != nil {
+		http.Error(w, "Invalid routine_id", http.StatusBadRequest)
+		return
+	}
 
-    routine, err := database.GetRoutineData(userObjID, routineObjID)
-    if err != nil {
-        log.Println("Couldn't fetch routine data")
-    }
+	routine, err := database.GetRoutineData(userObjID, routineObjID)
+	if err != nil {
+		log.Println("Couldn't fetch routine data")
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(routine)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(routine)
 }
 
 func GetWorkoutListHandler(w http.ResponseWriter, r *http.Request) {
-    userID := r.URL.Query().Get("user_id")
-    routineID := r.URL.Query().Get("routine_id")
+	userID := r.URL.Query().Get("user_id")
+	routineID := r.URL.Query().Get("routine_id")
 
-    if userID == "" {
-        http.Error(w, "Missing user_id", http.StatusBadRequest)
-        return
-    }
+	if userID == "" {
+		http.Error(w, "Missing user_id", http.StatusBadRequest)
+		return
+	}
 
-    userObjID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        http.Error(w, "Invalid user_id", http.StatusBadRequest)
-        return
-    }
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
 
-    _, err = primitive.ObjectIDFromHex(routineID)
-    if err != nil {
-        http.Error(w, "Invalid routine_id", http.StatusBadRequest)
-        return
-    }
+	_, err = primitive.ObjectIDFromHex(routineID)
+	if err != nil {
+		http.Error(w, "Invalid routine_id", http.StatusBadRequest)
+		return
+	}
 
-    workoutList, err := database.GetUserWorkouts(userObjID)
-    if err != nil {
-        log.Println("Couldn't fetch user workouts")
-        log.Println(err)
-    }
+	workoutList, err := database.GetUserWorkouts(userObjID)
+	if err != nil {
+		log.Println("Couldn't fetch user workouts")
+		log.Println(err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(workoutList)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(workoutList)
 }
 
 func GetWorkoutDataHandler(w http.ResponseWriter, r *http.Request) {
-    userID := r.URL.Query().Get("user_id")
-    workoutID := r.URL.Query().Get("workout_id")
+	userID := r.URL.Query().Get("user_id")
+	workoutID := r.URL.Query().Get("workout_id")
 
-    if userID == "" || workoutID == "" {
-        http.Error(w, "Missing user_id or workout_id", http.StatusBadRequest)
-        return
-    }
+	if userID == "" || workoutID == "" {
+		http.Error(w, "Missing user_id or workout_id", http.StatusBadRequest)
+		return
+	}
 
-    userObjID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        http.Error(w, "Invalid user_id", http.StatusBadRequest)
-        return
-    }
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
 
-    workoutObjID, err := primitive.ObjectIDFromHex(workoutID)
-    if err != nil {
-        http.Error(w, "Invalid workout_id", http.StatusBadRequest)
-        return
-    }
+	workoutObjID, err := primitive.ObjectIDFromHex(workoutID)
+	if err != nil {
+		http.Error(w, "Invalid workout_id", http.StatusBadRequest)
+		return
+	}
 
-    workout, err := database.GetWorkoutData(userObjID, workoutObjID)
-    if err != nil {
-        log.Println("Couldn't fetch workout data")
-        log.Println(err)
-    }
+	workout, err := database.GetWorkoutData(userObjID, workoutObjID)
+	if err != nil {
+		log.Println("Couldn't fetch workout data")
+		log.Println(err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(workout)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(workout)
 }
 
 func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
-    userID := r.URL.Query().Get("user_id")
-    if userID == "" {
-        http.Error(w, "Missing user_id", http.StatusBadRequest)
-        return 
-    }
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "Missing user_id", http.StatusBadRequest)
+		return
+	}
 
-    userObjID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        http.Error(w, "Invalid user_id", http.StatusBadRequest)
-        return
-    }
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
 
-    session, err := database.GetUserSessionData(userObjID)
-    if err != nil {
-        log.Println("Couldn't fetch workout data")
-        log.Println(err)
-    }
+	session, err := database.GetUserSessionData(userObjID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Println("No session data found for user id: ", userObjID)
+		} else {
+			log.Println("Couldn't fetch session data")
+			log.Println(err)
+		}
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(session)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(session)
 }
