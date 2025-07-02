@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-    "fitness-tracker/internal/database"
+	"fitness-tracker/internal/database"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
