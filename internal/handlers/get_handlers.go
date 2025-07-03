@@ -253,3 +253,32 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(session)
 }
+
+func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	exerciseID := r.URL.Query().Get("exercise_id")
+
+	if userID == "" || exerciseID == "" {
+		http.Error(w, "Missing user_id or exercise_id", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	session, err := database.GetUserSessionData(userObjID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Println("No session data found for user id: ", userObjID)
+		} else {
+			log.Println("Couldn't fetch session data")
+			log.Println(err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(session)
+}

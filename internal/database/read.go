@@ -213,3 +213,17 @@ func GetExerciseData(exerciseID primitive.ObjectID) (exercise models.Exercise, e
 
 	return
 }
+
+func GetHistoryData(exerciseID primitive.ObjectID, userID primitive.ObjectID) (history models.ExerciseHistory, err error){
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("history")
+
+	err = collection.FindOne(ctx, bson.M{
+		"exerciseID":    exerciseID,
+		"userID":    userID,
+	}).Decode(&history)
+
+	return
+}
