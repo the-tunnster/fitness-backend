@@ -87,7 +87,7 @@ func initWorkoutIndexes(ctx context.Context, db *mongo.Database) error {
 	return err
 }
 
-func initExerciseHistoryIndexes(ctx context.Context, db *mongo.Database) error {
+func initHistoryIndexes(ctx context.Context, db *mongo.Database) error {
 	workouts := db.Collection("history")
 	_, err := workouts.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
