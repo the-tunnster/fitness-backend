@@ -11,6 +11,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -178,5 +179,61 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	workoutID := r.URL.Query().Get("workout_id")
+	userID := r.URL.Query().Get("user_id")
+
+	if workoutID == "" || userID == "" {
+		http.Error(w, "Missing workout_id or user_id", http.StatusBadRequest)
+		return
+	}
+
+	workoutObjID, err := primitive.ObjectIDFromHex(workoutID)
+	if err != nil {
+		http.Error(w, "Invalid workout_id format", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	workoutData, err := database.GetWorkoutData(userObjID, workoutObjID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No workout data found for given workout id", http.StatusNotFound)
+			return
+		} else {
+			http.Error(w, "Failed to fetch workout data", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	for _, exercise := range(workoutData.Exercises){
+		exerciseSets := models.ExerciseSets{
+			Date: workoutData.WorkoutDate,
+			Equipment: exercise.Equipment,
+			Variation: exercise.Variation,
+			WorkoutSets: exercise.Sets,
+		}
+	
+		updates := bson.M{
+			"$push": bson.M{
+				"exercise_sets": exerciseSets,
+			},
+		}
+
+		err = database.UpdateHistory(exercise.ExerciseID, userObjID, updates)
+		if err != nil {
+			http.Error(w, "Failed to update workout history", http.StatusInternalServerError)
+			return
+		}
+	}
+	
 	w.WriteHeader(http.StatusNoContent)
 }
