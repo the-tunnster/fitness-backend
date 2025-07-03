@@ -24,6 +24,9 @@ func InitIndexes(ctx context.Context, db *mongo.Database) error {
 	if err := initWorkoutIndexes(ctx, db); err != nil {
 		return err
 	}
+	if err := initHistoryIndexes(ctx, db); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -79,6 +82,19 @@ func initWorkoutIndexes(ctx context.Context, db *mongo.Database) error {
 		},
 		{
 			Keys: bson.D{{Key: "routineID", Value: 1}},
+		},
+	})
+	return err
+}
+
+func initExerciseHistoryIndexes(ctx context.Context, db *mongo.Database) error {
+	workouts := db.Collection("history")
+	_, err := workouts.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "userID", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "exerciseID", Value: 1}},
 		},
 	})
 	return err
