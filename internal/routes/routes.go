@@ -34,10 +34,14 @@ func RegisterRoutes(mux *http.ServeMux) {
 
     // SESSION
     mux.HandleFunc("/session/data", handlers.GetSessionHandler)
-    mux.HandleFunc("/session/create", handlers.CreateWorkoutSessionHandler)
+    mux.HandleFunc("/session/create", handlers.CreateSessionHandler)
     mux.HandleFunc("/session/update", handlers.UpdateSessionHandler)
     mux.HandleFunc("/session/delete", handlers.DeleteSessionHandler)
 
+    // ANALYTICS
+    mux.HandleFunc("/history/data", handlers.GetHistoryHandler)
+    mux.HandleFunc("/history/create", handlers.CreateHistoryHandler)
+    mux.HandleFunc("/history/update", handlers.UpdateHistoryHandler)
 
     // AUTH
     mux.HandleFunc("/me", handlers.GetUserHandler)
