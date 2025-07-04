@@ -205,13 +205,8 @@ func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	workoutData, err := database.GetWorkoutData(userObjID, workoutObjID)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			http.Error(w, "No workout data found for given workout id", http.StatusNotFound)
-			return
-		} else {
-			http.Error(w, "Failed to fetch workout data", http.StatusInternalServerError)
-			return
-		}
+		http.Error(w, "Failed to fetch workout data", http.StatusInternalServerError)
+		return
 	}
 
 	for _, exercise := range(workoutData.Exercises){
@@ -221,17 +216,32 @@ func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 			Variation: exercise.Variation,
 			WorkoutSets: exercise.Sets,
 		}
-	
-		updates := bson.M{
-			"$push": bson.M{
-				"exercise_sets": exerciseSets,
-			},
+
+		_, err = database.GetHistoryData(exercise.ExerciseID, userObjID)
+		if err == mongo.ErrNoDocuments {
+
+			_, err = database.CreateHistory(models.ExerciseHistory{
+				UserID: userObjID,
+				ExerciseID: exercise.ExerciseID,
+				Sets: []models.ExerciseSets{},
+			})
+
+			if err != nil {
+					http.Error(w, "Failed to create workout history", http.StatusInternalServerError)
+					return
+			}
+
 		}
+		updates := bson.M{
+				"$push": bson.M{
+					"exercise_sets": exerciseSets,
+				},
+			}
 
 		err = database.UpdateHistory(exercise.ExerciseID, userObjID, updates)
 		if err != nil {
-			http.Error(w, "Failed to update workout history", http.StatusInternalServerError)
-			return
+				http.Error(w, "Failed to update workout history", http.StatusInternalServerError)
+				return
 		}
 	}
 	
