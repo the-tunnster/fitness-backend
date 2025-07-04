@@ -153,12 +153,12 @@ func UpdateHistory(exerciseID, userID primitive.ObjectID, updates bson.M) (err e
 	)
 
 	if err != nil {
-		log.Println("Error updating workout history")
+		log.Println("Error updating history")
 		return
 	}
 
 	if result.MatchedCount == 0 {
-		log.Println("No matching workout history found")
+		log.Println("No matching workout found")
 		return
 	}
 	
