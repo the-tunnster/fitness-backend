@@ -254,6 +254,39 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(session)
 }
 
+func CheckHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	exerciseID := r.URL.Query().Get("exercise_id")
+
+	if userID == "" || exerciseID == "" {
+		http.Error(w, "Missing user_id or exercise_id", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
+	if err != nil {
+		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+		return
+	}
+
+	var exists bool
+	_, err = database.GetHistoryData(exerciseObjID, userObjID)
+	if err == mongo.ErrNoDocuments {
+		exists = false
+	} else {
+		exists = true
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exists)
+}
+
 func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	exerciseID := r.URL.Query().Get("exercise_id")
@@ -269,16 +302,18 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := database.GetUserSessionData(userObjID)
+	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Println("No session data found for user id: ", userObjID)
-		} else {
-			log.Println("Couldn't fetch session data")
-			log.Println(err)
-		}
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	exerciseHistory, err := database.GetHistoryData(exerciseObjID, userObjID)
+	if err != nil {
+		log.Println("Couldn't fetch history data")
+		log.Println(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(session)
+	json.NewEncoder(w).Encode(exerciseHistory)
 }
