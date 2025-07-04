@@ -195,8 +195,10 @@ func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
-	if userID == "" {
-		http.Error(w, "Missing user_id", http.StatusBadRequest)
+	exerciseID := r.URL.Query().Get("exercise_id")
+
+	if userID == "" || exerciseID == "" {
+		http.Error(w, "Missing user_id or exercise_id", http.StatusBadRequest)
 		return
 	}
 
@@ -206,21 +208,24 @@ func CreateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exercise_list := database.GetExerciseList()
-
-	for _, exercise := range(exercise_list){
-		exerciseHistory := models.ExerciseHistory{
-			ExerciseID: exercise.ID,
-			UserID: userObjID,
-			Sets: []models.ExerciseSets{},
-		}
-
-		_, err := database.CreateHistory(exerciseHistory)
-		if err != nil {
-			http.Error(w, "Something broke while creating the history files", http.StatusInternalServerError)
-			return
-		}
+	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
+	if err != nil {
+		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+		return
 	}
 
+	exerciseHistory := models.ExerciseHistory{
+		ExerciseID: exerciseObjID,
+		UserID: userObjID,
+		Sets: []models.ExerciseSets{},
+	}
+
+	historyID, err := database.CreateHistory(exerciseHistory)
+	if err != nil {
+		http.Error(w, "Something broke while creating the history file", http.StatusInternalServerError)
+		return
+	}
+	
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(historyID.Hex())
 }
