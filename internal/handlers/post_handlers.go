@@ -10,6 +10,7 @@ import (
 	"fitness-tracker/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +126,26 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	for _, routine_exercise := range(full_routine.Exercises) {
 
 		var exercise_sets []models.WorkoutSet
-		for i := 0 ; i < routine_exercise.TargetSets ; i++ {
+		historic_exercise_equipment := "None"
+		historic_exercise_variation := "None"
+		i := 0
+
+		exercise_history, err := database.GetHistoryData(routine_exercise.ExerciseID, userObjID)
+
+		if err != mongo.ErrNoDocuments && len(exercise_history.Sets) > 0 {
+			historic_workout_sets := exercise_history.Sets[len(exercise_history.Sets)-1].WorkoutSets
+			historic_exercise_equipment = exercise_history.Sets[len(exercise_history.Sets)-1].Equipment
+			historic_exercise_variation = exercise_history.Sets[len(exercise_history.Sets)-1].Variation
+
+			for ; i < routine_exercise.TargetSets && i < len(historic_workout_sets); i++ {
+				exercise_sets = append(exercise_sets, models.WorkoutSet{
+					Reps: historic_workout_sets[i].Reps,
+					Weight: historic_workout_sets[i].Weight,
+				})
+			}
+		} 
+
+		for ; i < routine_exercise.TargetSets ; i++ {
 			exercise_sets = append(exercise_sets, models.WorkoutSet{
 				Reps: routine_exercise.TargetReps,
 				Weight: 0.0,
@@ -134,8 +154,8 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		
 		workout_exercises = append(workout_exercises, models.WorkoutExercise{
 			ExerciseID: routine_exercise.ExerciseID,
-			Equipment: "None",
-			Variation: "None",
+			Equipment: historic_exercise_equipment,
+			Variation: historic_exercise_variation,
 			Sets: exercise_sets,
 		})
 
