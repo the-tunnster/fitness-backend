@@ -122,51 +122,80 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var last_workout_exercises []models.WorkoutExercise
+	routine_exercises := full_routine.Exercises
+
 	var workout_exercises []models.WorkoutExercise
-	for _, routine_exercise := range(full_routine.Exercises) {
+
+	last_workout, err := database.GetLastUserWorkout(userObjID, routineObjID)
+	if err == nil {
+		last_workout_exercises = last_workout.Exercises
+	}
+
+	lastWorkoutIndex := 0
+
+	for _, routine_exercise := range routine_exercises {
 
 		var exercise_sets []models.WorkoutSet
 		historic_exercise_equipment := "None"
 		historic_exercise_variation := "None"
 		i := 0
 
-		exercise_history, err := database.GetHistoryData(routine_exercise.ExerciseID, userObjID)
+		if lastWorkoutIndex < len(last_workout_exercises) && last_workout_exercises[lastWorkoutIndex].ExerciseID == routine_exercise.ExerciseID {
+			
+			lastWorkoutExercise := last_workout_exercises[lastWorkoutIndex]
+			historic_exercise_equipment = lastWorkoutExercise.Equipment
+			historic_exercise_variation = lastWorkoutExercise.Variation
 
-		if err != mongo.ErrNoDocuments && len(exercise_history.Sets) > 0 {
-			historic_workout_sets := exercise_history.Sets[len(exercise_history.Sets)-1].WorkoutSets
-			historic_exercise_equipment = exercise_history.Sets[len(exercise_history.Sets)-1].Equipment
-			historic_exercise_variation = exercise_history.Sets[len(exercise_history.Sets)-1].Variation
-
-			for ; i < routine_exercise.TargetSets && i < len(historic_workout_sets); i++ {
+			// Use the sets from the last workout
+			for ; i < routine_exercise.TargetSets && i < len(lastWorkoutExercise.Sets); i++ {
 				exercise_sets = append(exercise_sets, models.WorkoutSet{
-					Reps: historic_workout_sets[i].Reps,
-					Weight: historic_workout_sets[i].Weight,
+					Reps:   lastWorkoutExercise.Sets[i].Reps,
+					Weight: lastWorkoutExercise.Sets[i].Weight,
 				})
 			}
-		} 
 
-		for ; i < routine_exercise.TargetSets ; i++ {
+			lastWorkoutIndex++
+		} else { // Fallback to exercise history if no last workout data or no match
+			exercise_history, err := database.GetHistoryData(routine_exercise.ExerciseID, userObjID)
+
+			if err != mongo.ErrNoDocuments && len(exercise_history.Sets) > 0 {
+				historic_workout_sets := exercise_history.Sets[len(exercise_history.Sets)-1].WorkoutSets
+				historic_exercise_equipment = exercise_history.Sets[len(exercise_history.Sets)-1].Equipment
+				historic_exercise_variation = exercise_history.Sets[len(exercise_history.Sets)-1].Variation
+
+				for ; i < routine_exercise.TargetSets && i < len(historic_workout_sets); i++ {
+					exercise_sets = append(exercise_sets, models.WorkoutSet{
+						Reps:   historic_workout_sets[i].Reps,
+						Weight: historic_workout_sets[i].Weight,
+					})
+				}
+			}
+		}
+
+		// Fill remaining sets with default values
+		for ; i < routine_exercise.TargetSets; i++ {
 			exercise_sets = append(exercise_sets, models.WorkoutSet{
-				Reps: routine_exercise.TargetReps,
+				Reps:   routine_exercise.TargetReps,
 				Weight: 0.0,
 			})
 		}
-		
+
 		workout_exercises = append(workout_exercises, models.WorkoutExercise{
 			ExerciseID: routine_exercise.ExerciseID,
-			Equipment: historic_exercise_equipment,
-			Variation: historic_exercise_variation,
-			Sets: exercise_sets,
+			Equipment:  historic_exercise_equipment,
+			Variation:  historic_exercise_variation,
+			Sets:       exercise_sets,
 		})
 
 	}
 
 	workout_session := models.WorkoutSession{
-		UserID: userObjID,
-		RoutineID: routineObjID,
-		Exercises: workout_exercises,
+		UserID:        userObjID,
+		RoutineID:     routineObjID,
+		Exercises:     workout_exercises,
 		ExerciseIndex: 0,
-		LastUpdate: primitive.NewDateTimeFromTime(time.Now()),
+		LastUpdate:    primitive.NewDateTimeFromTime(time.Now()),
 	}
 
 	sessionID, err := database.CreateSession(workout_session)
@@ -196,11 +225,11 @@ func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	workout := models.FullWorkout{
-		ID: primitive.NilObjectID,
-		UserID: workout_session.UserID,
-		RoutineID: workout_session.RoutineID,
+		ID:          primitive.NilObjectID,
+		UserID:      workout_session.UserID,
+		RoutineID:   workout_session.RoutineID,
 		WorkoutDate: primitive.NewDateTimeFromTime(time.Now()),
-		Exercises: workout_session.Exercises,
+		Exercises:   workout_session.Exercises,
 	}
 
 	workoutID, err := database.CreateWorkout(workout)
@@ -236,8 +265,8 @@ func CreateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	exerciseHistory := models.ExerciseHistory{
 		ExerciseID: exerciseObjID,
-		UserID: userObjID,
-		Sets: []models.ExerciseSets{},
+		UserID:     userObjID,
+		Sets:       []models.ExerciseSets{},
 	}
 
 	historyID, err := database.CreateHistory(exerciseHistory)
@@ -245,7 +274,7 @@ func CreateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something broke while creating the history file", http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(historyID.Hex())
 }
