@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetUserByEmail(emailID string) (user models.User, err error) {
@@ -109,6 +110,25 @@ func GetUserWorkouts(userID primitive.ObjectID) (workoutList []models.Workout, e
 	return
 }
 
+func GetLastUserWorkout(userID, routineID primitive.ObjectID) (last_workout models.FullWorkout, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("workouts")
+
+	opts := options.FindOne().SetSort(bson.D{{Key: "workoutDate", Value: -1}})
+    err = collection.FindOne(ctx, bson.M{
+        "userID":    userID,
+        "routineID": routineID,
+    }, opts).Decode(&last_workout)
+
+	if err != nil {
+		return last_workout, err
+	}
+
+	return
+}
+
 func GetWorkoutData(userID, workoutID primitive.ObjectID) (workout models.FullWorkout, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -167,7 +187,7 @@ func GetExerciseList() (exercises []models.Exercise) {
 	return
 }
 
-func GetExerciseID(exerciseName string) (exerciseID string, err error){
+func GetExerciseID(exerciseName string) (exerciseID string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -176,7 +196,7 @@ func GetExerciseID(exerciseName string) (exerciseID string, err error){
 	var exercise models.Exercise
 
 	err = collection.FindOne(ctx, bson.M{
-		"name":    exerciseName,
+		"name": exerciseName,
 	}).Decode(&exercise)
 
 	exerciseID = exercise.ID.Hex()
@@ -184,7 +204,7 @@ func GetExerciseID(exerciseName string) (exerciseID string, err error){
 	return
 }
 
-func GetExerciseName(exerciseID primitive.ObjectID) (exerciseName string, err error){
+func GetExerciseName(exerciseID primitive.ObjectID) (exerciseName string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -193,7 +213,7 @@ func GetExerciseName(exerciseID primitive.ObjectID) (exerciseName string, err er
 	var exercise models.Exercise
 
 	err = collection.FindOne(ctx, bson.M{
-		"_id":    exerciseID,
+		"_id": exerciseID,
 	}).Decode(&exercise)
 
 	exerciseName = exercise.Name
@@ -201,28 +221,28 @@ func GetExerciseName(exerciseID primitive.ObjectID) (exerciseName string, err er
 	return
 }
 
-func GetExerciseData(exerciseID primitive.ObjectID) (exercise models.Exercise, err error){
+func GetExerciseData(exerciseID primitive.ObjectID) (exercise models.Exercise, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := GetCollection("exercises")
 
 	err = collection.FindOne(ctx, bson.M{
-		"_id":    exerciseID,
+		"_id": exerciseID,
 	}).Decode(&exercise)
 
 	return
 }
 
-func GetHistoryData(exerciseID primitive.ObjectID, userID primitive.ObjectID) (history models.ExerciseHistory, err error){
+func GetHistoryData(exerciseID primitive.ObjectID, userID primitive.ObjectID) (history models.ExerciseHistory, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := GetCollection("history")
 
 	err = collection.FindOne(ctx, bson.M{
-		"exerciseID":    exerciseID,
-		"userID":    userID,
+		"exerciseID": exerciseID,
+		"userID":     userID,
 	}).Decode(&history)
 
 	return
