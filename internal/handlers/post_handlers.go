@@ -80,9 +80,9 @@ func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newRoutine := models.FullRoutine{
-		UserID:      userObjID,
-		Name:        routine_data.Name,
-		Exercises:   exercises,
+		UserID:    userObjID,
+		Name:      routine_data.Name,
+		Exercises: exercises,
 	}
 
 	routineID, err := database.CreateRoutine(newRoutine)
