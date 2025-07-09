@@ -2,18 +2,9 @@ module fitness-tracker
 
 go 1.24.1
 
-require (
-	go.mongodb.org/mongo-driver v1.17.3
-	golang.org/x/oauth2 v0.29.0
-)
+require go.mongodb.org/mongo-driver v1.17.3
 
 require (
-	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
-)
-
-require (
-	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.16.7 // indirect

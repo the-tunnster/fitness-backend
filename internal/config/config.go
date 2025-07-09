@@ -12,11 +12,6 @@ type Config struct {
 	MongoDB  string
 
 	Port string
-
-	JWTSecret        string
-	OIDCClientID     string
-	OIDCClientSecret string
-	OIDCRedirectURL  string
 }
 
 var AppConfig Config
@@ -32,11 +27,6 @@ func LoadConfig() {
 	db := getEnvWithDefault("MONGODB_DBNAME", "fitness_app")
 	port := getEnvWithDefault("PORT", "8080")
 
-	jwtSecret := getEnvWithDefault("JWT_SECRET", "")
-	oidcClientID := getEnvWithDefault("OIDC_CLIENT_ID", "")
-	oidcClientSecret := getEnvWithDefault("OIDC_CLIENT_SECRET", "")
-	oidcRedirectURL := getEnvWithDefault("OIDC_REDIRECT_URL", "")
-
 	if uri == "" || db == "" {
 		log.Fatal("Missing environment variables: MONGODB_URI and/or MONGODB_DBNAME")
 	}
@@ -45,10 +35,6 @@ func LoadConfig() {
 		MongoURI:         uri,
 		MongoDB:          db,
 		Port:             port,
-		JWTSecret:        jwtSecret,
-		OIDCClientID:     oidcClientID,
-		OIDCClientSecret: oidcClientSecret,
-		OIDCRedirectURL:  oidcRedirectURL,
 	}
 }
 
