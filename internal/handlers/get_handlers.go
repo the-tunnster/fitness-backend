@@ -3,7 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"net/http"
+	"sort"
+	"time"
 
 	"fitness-tracker/internal/database"
 
@@ -304,7 +307,7 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
 		return
 	}
 
@@ -312,8 +315,104 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Couldn't fetch history data")
 		log.Println(err)
+		http.Error(w, "Failed to retrieve data", http.StatusInternalServerError)
+		return
+	}
+
+	type ProcessedHistory struct {
+		Date               string  `json:"date"`
+		Weight             float64 `json:"weight,omitempty"`
+		InterpolatedWeight float64 `json:"interpolated_weight"`
+		Volume             float64 `json:"volume,omitempty"`
+	}
+
+	// --- Group by date ---
+	type dailyStats struct {
+		Date   time.Time
+		MaxW   float64
+		Volume float64
+	}
+	dailyMap := map[string]*dailyStats{}
+
+	for _, day := range exerciseHistory.Sets {
+		dateTime := day.Date.Time()
+		dateStr := dateTime.Format("2006-01-02")
+		if _, exists := dailyMap[dateStr]; !exists {
+			dailyMap[dateStr] = &dailyStats{Date: dateTime}
+		}
+		for _, s := range day.WorkoutSets {
+			if s.Reps > 0 && s.Weight > 0 {
+				if s.Weight > dailyMap[dateStr].MaxW {
+					dailyMap[dateStr].MaxW = s.Weight
+				}
+				dailyMap[dateStr].Volume += s.Weight * float64(s.Reps)
+			}
+		}
+	}
+
+	// --- Sort dates ---
+	var sortedDates []string
+	for d := range dailyMap {
+		sortedDates = append(sortedDates, d)
+	}
+	sort.Strings(sortedDates)
+
+	if len(sortedDates) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("[]"))
+		return
+	}
+
+	// --- Fill in missing days and interpolate ---
+	firstDate, _ := time.Parse("2006-01-02", sortedDates[0])
+	lastDate, _ := time.Parse("2006-01-02", sortedDates[len(sortedDates)-1])
+
+	results := []ProcessedHistory{}
+	var prevDate string
+	var prevW float64
+
+	for d := firstDate; !d.After(lastDate); d = d.AddDate(0, 0, 1) {
+		ds := d.Format("2006-01-02")
+		if entry, ok := dailyMap[ds]; ok {
+			results = append(results, ProcessedHistory{
+				Date:               ds,
+				Weight:             entry.MaxW,
+				InterpolatedWeight: entry.MaxW,
+				Volume:             entry.Volume,
+			})
+			prevDate = ds
+			prevW = entry.MaxW
+			continue
+		}
+
+		// Interpolate if possible
+		// Find next known
+		var nextDate string
+		var nextW float64
+		for i := range sortedDates {
+			if sortedDates[i] > ds {
+				nextDate = sortedDates[i]
+				nextW = dailyMap[nextDate].MaxW
+				break
+			}
+		}
+		if prevDate == "" || nextDate == "" {
+			continue
+		}
+
+		d0, _ := time.Parse("2006-01-02", prevDate)
+		dn, _ := time.Parse("2006-01-02", nextDate)
+		totalGap := dn.Sub(d0).Hours() / 24
+		curGap := d.Sub(d0).Hours() / 24
+
+		interpolated := prevW + (nextW-prevW)*(1-math.Cos(math.Pi*curGap/totalGap))/2
+
+		results = append(results, ProcessedHistory{
+			Date:               ds,
+			InterpolatedWeight: interpolated,
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(exerciseHistory)
+	json.NewEncoder(w).Encode(results)
 }
