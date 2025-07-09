@@ -257,12 +257,11 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(session)
 }
 
-func CheckHistoryHandler(w http.ResponseWriter, r *http.Request) {
+func CountWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
-	exerciseID := r.URL.Query().Get("exercise_id")
 
-	if userID == "" || exerciseID == "" {
-		http.Error(w, "Missing user_id or exercise_id", http.StatusBadRequest)
+	if userID == "" {
+		http.Error(w, "Missing user_id", http.StatusBadRequest)
 		return
 	}
 
@@ -272,22 +271,10 @@ func CheckHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
-	if err != nil {
-		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
-		return
-	}
-
-	var exists bool
-	_, err = database.GetHistoryData(exerciseObjID, userObjID)
-	if err == mongo.ErrNoDocuments {
-		exists = false
-	} else {
-		exists = true
-	}
+	workout_count, _ := database.CountWorkouts(userObjID)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(exists)
+	json.NewEncoder(w).Encode(workout_count)
 }
 
 func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {

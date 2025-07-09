@@ -30,6 +30,7 @@ func RegisterRoutes(mux *http.ServeMux) {
     // WORKOUT
     mux.HandleFunc("/workouts/list", handlers.GetWorkoutListHandler)
     mux.HandleFunc("/workouts/data", handlers.GetWorkoutDataHandler)
+    mux.HandleFunc("/workouts/count", handlers.CountWorkoutHandler)
     mux.HandleFunc("/workouts/create", handlers.CreateWorkoutHandler)
 
     // SESSION
@@ -39,7 +40,6 @@ func RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/session/delete", handlers.DeleteSessionHandler)
 
     // ANALYTICS
-    mux.HandleFunc("/history/check", handlers.CheckHistoryHandler)
     mux.HandleFunc("/history/create", handlers.CreateHistoryHandler)
     mux.HandleFunc("/history/data", handlers.GetHistoryHandler)
     mux.HandleFunc("/history/update", handlers.UpdateHistoryHandler)
