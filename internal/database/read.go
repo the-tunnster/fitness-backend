@@ -129,6 +129,19 @@ func GetLastUserWorkout(userID, routineID primitive.ObjectID) (last_workout mode
 	return
 }
 
+func CountWorkouts(userID primitive.ObjectID) (workout_count int64, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("workouts")
+
+	workout_count, err = collection.CountDocuments(ctx, bson.M{
+		"userID": userID,
+	})
+
+	return
+}
+
 func GetWorkoutData(userID, workoutID primitive.ObjectID) (workout models.FullWorkout, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
