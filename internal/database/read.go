@@ -110,17 +110,17 @@ func GetUserWorkouts(userID primitive.ObjectID) (workoutList []models.Workout, e
 	return
 }
 
-func GetLastUserWorkout(userID, routineID primitive.ObjectID) (last_workout models.FullWorkout, err error) {
+func GetLastWorkoutForRoutine(userID, routineID primitive.ObjectID) (last_workout models.FullWorkout, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := GetCollection("workouts")
 
 	opts := options.FindOne().SetSort(bson.D{{Key: "workoutDate", Value: -1}})
-    err = collection.FindOne(ctx, bson.M{
-        "userID":    userID,
-        "routineID": routineID,
-    }, opts).Decode(&last_workout)
+	err = collection.FindOne(ctx, bson.M{
+		"userID":    userID,
+		"routineID": routineID,
+	}, opts).Decode(&last_workout)
 
 	if err != nil {
 		return last_workout, err
