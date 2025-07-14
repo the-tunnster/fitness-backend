@@ -39,7 +39,7 @@ func RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/session/update", handlers.UpdateSessionHandler)
     mux.HandleFunc("/session/delete", handlers.DeleteSessionHandler)
 
-    // ANALYTICS
+    // HISTORY
     mux.HandleFunc("/history/create", handlers.CreateHistoryHandler)
     mux.HandleFunc("/history/data", handlers.GetHistoryHandler)
     mux.HandleFunc("/history/update", handlers.UpdateHistoryHandler)

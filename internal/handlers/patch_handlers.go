@@ -210,6 +210,21 @@ func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, exercise := range(workoutData.Exercises){
+        if len(exercise.Sets) == 0 {
+            continue
+        }
+
+        validSets := []models.WorkoutSet{}
+        for _, set := range exercise.Sets {
+            if set.Reps > 0 {
+                validSets = append(validSets, set)
+            }
+        }
+
+        if len(validSets) == 0 {
+            continue
+        }
+		
 		exerciseSets := models.ExerciseSets{
 			Date: workoutData.WorkoutDate,
 			Equipment: exercise.Equipment,
