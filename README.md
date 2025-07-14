@@ -44,10 +44,18 @@ internal/
    ```bash
    cd fitness-backend
    ```
-3. Start the application using Docker Compose:
+3. Start the database container using Docker Compose:
    ```bash
    docker-compose up -d
    ```
+4. Build the app executable:
+	```bash
+	go build
+	```
+5. Start the web-server:
+	```bash
+	./fitness-tracker
+	```
 
 ## License
 
