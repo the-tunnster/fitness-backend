@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"math"
 	"net/http"
 	"sort"
@@ -23,8 +22,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := database.GetUserByEmail(emailID)
 	if err != nil {
-		log.Println("Couldn't fetch user info")
-		log.Println(err)
+		http.Error(w, "Couldn't find user", http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -130,8 +129,8 @@ func GetRoutineListHandler(w http.ResponseWriter, r *http.Request) {
 
 	routineList, err := database.GetUserRoutines(userObjID)
 	if err != nil {
-		log.Println("Couldn't fetch user routines")
-		log.Println(err)
+		http.Error(w, "Couldn't find any routines", http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -161,7 +160,8 @@ func GetRoutineDataHandler(w http.ResponseWriter, r *http.Request) {
 
 	routine, err := database.GetRoutineData(userObjID, routineObjID)
 	if err != nil {
-		log.Println("Couldn't fetch routine data")
+		http.Error(w, "Couldn't find any routine data", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -191,8 +191,8 @@ func GetWorkoutListHandler(w http.ResponseWriter, r *http.Request) {
 
 	workoutList, err := database.GetUserWorkouts(userObjID)
 	if err != nil {
-		log.Println("Couldn't fetch user workouts")
-		log.Println(err)
+		http.Error(w, "Couldn't find any workouts", http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -222,8 +222,8 @@ func GetWorkoutDataHandler(w http.ResponseWriter, r *http.Request) {
 
 	workout, err := database.GetWorkoutData(userObjID, workoutObjID)
 	if err != nil {
-		log.Println("Couldn't fetch workout data")
-		log.Println(err)
+		http.Error(w, "Couldn't fetch workout data", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -246,10 +246,11 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := database.GetUserSessionData(userObjID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Println("No session data found for user id: ", userObjID)
+			http.Error(w, "Couldn't find any sessions", http.StatusNotFound)
+			return
 		} else {
-			log.Println("Couldn't fetch session data")
-			log.Println(err)
+			http.Error(w, "Couldn't fetch session data", http.StatusInternalServerError)
+			return
 		}
 	}
 
@@ -300,8 +301,6 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	exerciseHistory, err := database.GetHistoryData(exerciseObjID, userObjID)
 	if err != nil {
-		log.Println("Couldn't fetch history data")
-		log.Println(err)
 		http.Error(w, "Failed to retrieve data", http.StatusInternalServerError)
 		return
 	}
