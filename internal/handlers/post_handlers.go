@@ -127,7 +127,7 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	var workout_exercises []models.WorkoutExercise
 
-	last_workout, err := database.GetLastUserWorkout(userObjID, routineObjID)
+	last_workout, err := database.GetLastWorkoutForRoutine(userObjID, routineObjID)
 	if err == nil {
 		last_workout_exercises = last_workout.Exercises
 	}
