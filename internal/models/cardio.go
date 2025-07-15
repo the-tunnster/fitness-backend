@@ -26,6 +26,12 @@ type CardioSession struct {
 	CardioMetrics CardioMetric       `bson:"metrics" json:"metrics"`
 }
 
+type CardioSessionDTO struct {
+	Equipment     string       `json:"equipment"`
+	Variation     string       `json:"variation"`
+	CardioMetrics CardioMetric `json:"metrics"`
+}
+
 type CardioHistory struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	UserID   primitive.ObjectID `bson:"userID" json:"user_id"`
