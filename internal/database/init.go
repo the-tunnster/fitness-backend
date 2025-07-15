@@ -18,13 +18,19 @@ func InitIndexes(ctx context.Context, db *mongo.Database) error {
 	if err := initExerciseIndexes(ctx, db); err != nil {
 		return err
 	}
+	if err := initCardioIndexes(ctx, db); err != nil {
+		return err
+	}
 	if err := initSessionIndexes(ctx, db); err != nil {
 		return err
 	}
 	if err := initWorkoutIndexes(ctx, db); err != nil {
 		return err
 	}
-	if err := initHistoryIndexes(ctx, db); err != nil {
+	if err := initExerciseHistoryIndexes(ctx, db); err != nil {
+		return err
+	}
+	if err := initCardioHistoryIndexes(ctx, db); err != nil {
 		return err
 	}
 	return nil
@@ -60,6 +66,14 @@ func initExerciseIndexes(ctx context.Context, db *mongo.Database) error {
 	return err
 }
 
+func initCardioIndexes(ctx context.Context, db *mongo.Database) error {
+	exercises := db.Collection("cardio")
+	_, err := exercises.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{{Key: "name", Value: 1}},
+	})
+	return err
+}
+
 func initSessionIndexes(ctx context.Context, db *mongo.Database) error {
 	sessions := db.Collection("sessions")
 	_, err := sessions.Indexes().CreateMany(ctx, []mongo.IndexModel{
@@ -87,14 +101,27 @@ func initWorkoutIndexes(ctx context.Context, db *mongo.Database) error {
 	return err
 }
 
-func initHistoryIndexes(ctx context.Context, db *mongo.Database) error {
-	workouts := db.Collection("history")
-	_, err := workouts.Indexes().CreateMany(ctx, []mongo.IndexModel{
+func initExerciseHistoryIndexes(ctx context.Context, db *mongo.Database) error {
+	exerciseHistory := db.Collection("exerciseHistory")
+	_, err := exerciseHistory.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "userID", Value: 1}},
 		},
 		{
 			Keys: bson.D{{Key: "exerciseID", Value: 1}},
+		},
+	})
+	return err
+}
+
+func initCardioHistoryIndexes(ctx context.Context, db *mongo.Database) error {
+	cardioHistory := db.Collection("cardioHistory")
+	_, err := cardioHistory.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "userID", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "cardioID", Value: 1}},
 		},
 	})
 	return err

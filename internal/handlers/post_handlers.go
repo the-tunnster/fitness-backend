@@ -157,7 +157,7 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 			lastWorkoutIndex++
 		} else { // Fallback to exercise history if no last workout data or no match
-			exercise_history, err := database.GetHistoryData(routine_exercise.ExerciseID, userObjID)
+			exercise_history, err := database.GetExerciseHistoryData(routine_exercise.ExerciseID, userObjID)
 
 			if err != mongo.ErrNoDocuments && len(exercise_history.Sets) > 0 {
 				historic_workout_sets := exercise_history.Sets[len(exercise_history.Sets)-1].WorkoutSets
@@ -242,7 +242,7 @@ func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(workoutID.Hex())
 }
 
-func CreateHistoryHandler(w http.ResponseWriter, r *http.Request) {
+func CreateExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	exerciseID := r.URL.Query().Get("exercise_id")
 
@@ -269,9 +269,46 @@ func CreateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		Sets:       []models.ExerciseSets{},
 	}
 
-	historyID, err := database.CreateHistory(exerciseHistory)
+	historyID, err := database.CreateExerciseHistory(exerciseHistory)
 	if err != nil {
-		http.Error(w, "Something broke while creating the history file", http.StatusInternalServerError)
+		http.Error(w, "Failed to create exercise history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(historyID.Hex())
+}
+
+func CreateCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	cardioID := r.URL.Query().Get("cardio_id")
+
+	if userID == "" || cardioID == "" {
+		http.Error(w, "Missing user_id or cardio_id", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	cardioObjID, err := primitive.ObjectIDFromHex(cardioID)
+	if err != nil {
+		http.Error(w, "Invalid cardio_id", http.StatusBadRequest)
+		return
+	}
+
+	cardioHistory := models.CardioHistory{
+		CardioID: cardioObjID,
+		UserID:   userObjID,
+		Sessions: []models.CardioSession{},
+	}
+
+	historyID, err := database.CreateCardioHistory(cardioHistory)
+	if err != nil {
+		http.Error(w, "Failed to create cardio history: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
