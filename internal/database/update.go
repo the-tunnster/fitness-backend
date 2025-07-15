@@ -138,11 +138,11 @@ func UpdateSession(sessionID primitive.ObjectID, updates bson.M) (err error) {
 	return
 }
 
-func UpdateHistory(exerciseID, userID primitive.ObjectID, updates bson.M) (err error) {
+func UpdateExerciseHistory(exerciseID, userID primitive.ObjectID, updates bson.M) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := GetCollection("history")
+	collection := GetCollection("exerciseHistory")
 
 	result, err := collection.UpdateOne(ctx,
 		bson.M{
@@ -152,15 +152,30 @@ func UpdateHistory(exerciseID, userID primitive.ObjectID, updates bson.M) (err e
 		updates,
 	)
 
-	if err != nil {
-		log.Println("Error updating history")
-		return
-	}
-
-	if result.MatchedCount == 0 {
-		log.Println("No matching workout found")
+	if err != nil || result.MatchedCount == 0 {
 		return
 	}
 	
+	return
+}
+
+func UpdateCardioHistory(cardioID, userID primitive.ObjectID, updates bson.M) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("cardioHistory")
+
+	result, err := collection.UpdateOne(ctx,
+		bson.M{
+			"cardioID": cardioID,
+			"userID":   userID,
+		},
+		updates,
+	)
+
+	if err != nil || result.MatchedCount == 0 {
+		return err
+	}
+
 	return
 }
