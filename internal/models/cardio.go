@@ -5,7 +5,6 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type Cardio struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name       string             `bson:"name" json:"name"`
-	Category   string             `bson:"category" json:"category"`
 	Variations []string           `bson:"variations" json:"variations"`
 	Equipment  []string           `bson:"equipment" json:"equipment"`
 }
