@@ -13,7 +13,8 @@ type Cardio struct {
 type CardioMetric struct {
 	TotalDistance  float32   `bson:"totalDistance" json:"total_distance"`
 	TotalTime      float32   `bson:"totalTime" json:"total_time"`
-	Splits         []float32 `bson:"splits" json:"splits"`
+	DistanceSplits []float32 `bson:"distanceSplits" json:"distance_splits"`
+	TimeSplits     []float32 `bson:"timeSplits" json:"time_splits"`
 	AveragePace    float32   `bson:"averagePace" json:"average_pace"`
 	CaloriesBurned float32   `bson:"caloriesBurned" json:"calories_burned"`
 	HeartRate      int16     `bson:"heartRate" json:"heart_rate"`
