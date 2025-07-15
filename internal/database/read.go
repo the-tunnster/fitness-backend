@@ -247,15 +247,29 @@ func GetExerciseData(exerciseID primitive.ObjectID) (exercise models.Exercise, e
 	return
 }
 
-func GetHistoryData(exerciseID primitive.ObjectID, userID primitive.ObjectID) (history models.ExerciseHistory, err error) {
+func GetExerciseHistoryData(exerciseID primitive.ObjectID, userID primitive.ObjectID) (history models.ExerciseHistory, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := GetCollection("history")
+	collection := GetCollection("exerciseHistory")
 
 	err = collection.FindOne(ctx, bson.M{
 		"exerciseID": exerciseID,
 		"userID":     userID,
+	}).Decode(&history)
+
+	return
+}
+
+func GetCardioHistoryData(cardioID primitive.ObjectID, userID primitive.ObjectID) (history models.CardioHistory, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("cardioHistory")
+
+	err = collection.FindOne(ctx, bson.M{
+		"cardioID": cardioID,
+		"userID":   userID,
 	}).Decode(&history)
 
 	return
