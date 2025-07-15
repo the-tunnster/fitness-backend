@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"fitness-tracker/internal/models"
@@ -18,7 +17,6 @@ func CreateUser(user models.User) (userID primitive.ObjectID, err error) {
 
     result, err := collection.InsertOne(ctx, user)
     if err != nil {
-        log.Println("Couldn't create user")
         return
     }
 
@@ -34,7 +32,6 @@ func CreateExercise(exercise models.Exercise) (exerciseID primitive.ObjectID, er
 
     result, err := collection.InsertOne(ctx, exercise)
     if err != nil {
-        log.Println("Couldn't create exercise")
         return
     }
 
@@ -50,7 +47,6 @@ func CreateRoutine(routine models.FullRoutine) (routineID primitive.ObjectID, er
 
     result, err := collection.InsertOne(ctx, routine)
     if err != nil {
-        log.Println("Couldn't create routine")
         return
     }
 
@@ -66,7 +62,6 @@ func CreateWorkout(workout models.FullWorkout) (workoutID primitive.ObjectID, er
 
     result, err := collection.InsertOne(ctx, workout)
     if err != nil {
-        log.Println("Couldn't create workout")
         return
     }
 
@@ -82,7 +77,6 @@ func CreateSession(session models.WorkoutSession) (sessionID primitive.ObjectID,
 
     result, err := collection.InsertOne(ctx, session)
     if err != nil {
-        log.Println("Couldn't create workout")
         return
     }
 
@@ -90,15 +84,29 @@ func CreateSession(session models.WorkoutSession) (sessionID primitive.ObjectID,
     return
 }
 
-func CreateHistory(history models.ExerciseHistory) (historyID primitive.ObjectID, err error) {
+func CreateExerciseHistory(history models.ExerciseHistory) (historyID primitive.ObjectID, err error) {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
-    collection := GetCollection("history")
+    collection := GetCollection("exerciseHistory")
 
     result, err := collection.InsertOne(ctx, history)
     if err != nil {
-        log.Println("Couldn't create historic data")
+        return
+    }
+
+    historyID = result.InsertedID.(primitive.ObjectID)
+    return
+}
+
+func CreateCardioHistory(history models.CardioHistory) (historyID primitive.ObjectID, err error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    collection := GetCollection("cardioHistory")
+
+    result, err := collection.InsertOne(ctx, history)
+    if err != nil {
         return
     }
 
