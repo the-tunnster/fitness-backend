@@ -278,7 +278,7 @@ func CountWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(workout_count)
 }
 
-func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
+func GetExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	exerciseID := r.URL.Query().Get("exercise_id")
 
@@ -299,7 +299,7 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exerciseHistory, err := database.GetHistoryData(exerciseObjID, userObjID)
+	exerciseHistory, err := database.GetExerciseHistoryData(exerciseObjID, userObjID)
 	if err != nil {
 		http.Error(w, "Failed to retrieve data", http.StatusInternalServerError)
 		return
@@ -401,4 +401,35 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
+}
+
+func GetCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	cardioID := r.URL.Query().Get("cardio_id")
+
+	if userID == "" || cardioID == "" {
+		http.Error(w, "Missing user_id or cardio_id", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	cardioObjID, err := primitive.ObjectIDFromHex(cardioID)
+	if err != nil {
+		http.Error(w, "Invalid cardio_id", http.StatusBadRequest)
+		return
+	}
+
+	cardioHistory, err := database.GetCardioHistoryData(cardioObjID, userObjID)
+	if err != nil {
+		http.Error(w, "Failed to retrieve data", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cardioHistory)
 }
