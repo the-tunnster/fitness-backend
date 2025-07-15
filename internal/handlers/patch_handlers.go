@@ -182,7 +182,7 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
+func UpdateExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	workoutID := r.URL.Query().Get("workout_id")
 	userID := r.URL.Query().Get("user_id")
 
@@ -232,10 +232,10 @@ func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 			WorkoutSets: exercise.Sets,
 		}
 
-		_, err = database.GetHistoryData(exercise.ExerciseID, userObjID)
+		_, err = database.GetExerciseHistoryData(exercise.ExerciseID, userObjID)
 		if err == mongo.ErrNoDocuments {
 
-			_, err = database.CreateHistory(models.ExerciseHistory{
+			_, err = database.CreateExerciseHistory(models.ExerciseHistory{
 				UserID: userObjID,
 				ExerciseID: exercise.ExerciseID,
 				Sets: []models.ExerciseSets{},
@@ -253,12 +253,77 @@ func UpdateHistoryHandler(w http.ResponseWriter, r *http.Request) {
 				},
 			}
 
-		err = database.UpdateHistory(exercise.ExerciseID, userObjID, updates)
+		err = database.UpdateExerciseHistory(exercise.ExerciseID, userObjID, updates)
 		if err != nil {
 				http.Error(w, "Failed to update workout history", http.StatusInternalServerError)
 				return
 		}
 	}
+	
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func UpdateCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	cardioID := r.URL.Query().Get("cardio_id")
+	userID := r.URL.Query().Get("user_id")
+
+	if cardioID == "" || userID == "" {
+		http.Error(w, "Missing cardio_id or user_id", http.StatusBadRequest)
+		return
+	}
+
+	cardioObjID, err := primitive.ObjectIDFromHex(cardioID)
+	if err != nil {
+		http.Error(w, "Invalid cardio_id format", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	var data models.CardioSessionDTO
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	cardioSession := models.CardioSession{
+		Date: primitive.NewDateTimeFromTime(time.Now()),
+		Equipment: data.Equipment,
+		Variation: data.Variation,
+		CardioMetrics: data.CardioMetrics,
+	}
+
+	_, err = database.GetCardioHistoryData(cardioObjID, userObjID)
+	if err == mongo.ErrNoDocuments {
+
+			_, err = database.CreateCardioHistory(models.CardioHistory{
+				UserID: userObjID,
+				CardioID: cardioObjID,
+				Sessions: []models.CardioSession{},
+			})
+
+			if err != nil {
+					http.Error(w, "Failed to create cardio history", http.StatusInternalServerError)
+					return
+			}
+
+		}
+		updates := bson.M{
+				"$push": bson.M{
+					"sessions": cardioSession,
+				},
+			}
+
+		err = database.UpdateCardioHistory(cardioObjID, userObjID, updates)
+		if err != nil {
+				http.Error(w, "Failed to update cardio history", http.StatusInternalServerError)
+				return
+		}
+
 	
 	w.WriteHeader(http.StatusNoContent)
 }
