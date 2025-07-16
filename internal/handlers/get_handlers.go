@@ -92,10 +92,10 @@ func GetExerciseListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCardioListHandler(w http.ResponseWriter, r *http.Request) {
-	exerciseList := database.GetExerciseList()
+	cardioList := database.GetCardioList()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(exerciseList)
+	json.NewEncoder(w).Encode(cardioList)
 }
 
 func GetExerciseDataHandler(w http.ResponseWriter, r *http.Request) {
