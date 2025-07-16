@@ -48,6 +48,7 @@ func RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/cardio/create", handlers.CreateCardioHistoryHandler)
     mux.HandleFunc("/cardio/update", handlers.UpdateCardioHistoryHandler)
     mux.HandleFunc("/cardio/data", handlers.GetCardioHistoryHandler)
+    mux.HandleFunc("/cardio/list", handlers.GetCardioListHandler)
     
     // AUTH
     mux.HandleFunc("/me", handlers.GetUserHandler)

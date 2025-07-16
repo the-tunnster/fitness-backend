@@ -91,6 +91,13 @@ func GetExerciseListHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(exerciseList)
 }
 
+func GetCardioListHandler(w http.ResponseWriter, r *http.Request) {
+	exerciseList := database.GetExerciseList()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(exerciseList)
+}
+
 func GetExerciseDataHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseID := r.URL.Query().Get("exercise_id")
 	if exerciseID == "" {

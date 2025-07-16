@@ -293,7 +293,6 @@ func UpdateCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	cardioSession := models.CardioSession{
 		Date: primitive.NewDateTimeFromTime(time.Now()),
 		Equipment: data.Equipment,
-		Variation: data.Variation,
 		CardioMetrics: data.CardioMetrics,
 	}
 
