@@ -200,6 +200,28 @@ func GetExerciseList() (exercises []models.Exercise) {
 	return
 }
 
+func GetCardioList() (cardios []models.Cardio) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("cardio")
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil
+	}
+
+	for cursor.Next(ctx) {
+		var cardio models.Cardio
+		if err := cursor.Decode(&cardio); err != nil {
+			continue
+		}
+		cardios = append(cardios, cardio)
+	}
+
+	return
+}
+
 func GetExerciseID(exerciseName string) (exerciseID string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
