@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"math"
 	"net/http"
 	"sort"
-	"time"
 
 	"fitness-tracker/internal/database"
 
@@ -313,40 +311,35 @@ func GetExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type ProcessedHistory struct {
-		Date               string  `json:"date"`
-		Weight             float64 `json:"weight,omitempty"`
-		InterpolatedWeight float64 `json:"interpolated_weight"`
-		Volume             float64 `json:"volume,omitempty"`
+		Date   string  `json:"date"`
+		Weight float64 `json:"weight,omitempty"`
+		Volume float64 `json:"volume,omitempty"`
 	}
 
-	// --- Group by date ---
-	type dailyStats struct {
-		Date   time.Time
+	// Group by date and calculate max weight and volume
+	dailyMap := make(map[string]struct {
 		MaxW   float64
 		Volume float64
-	}
-	dailyMap := map[string]*dailyStats{}
+	})
 
 	for _, day := range exerciseHistory.Sets {
-		dateTime := day.Date.Time()
-		dateStr := dateTime.Format("2006-01-02")
-		if _, exists := dailyMap[dateStr]; !exists {
-			dailyMap[dateStr] = &dailyStats{Date: dateTime}
-		}
+		dateStr := day.Date.Time().Format("2006-01-02")
 		for _, s := range day.WorkoutSets {
 			if s.Reps > 0 && s.Weight > 0 {
-				if s.Weight > dailyMap[dateStr].MaxW {
-					dailyMap[dateStr].MaxW = s.Weight
+				entry := dailyMap[dateStr]
+				if s.Weight > entry.MaxW {
+					entry.MaxW = s.Weight
 				}
-				dailyMap[dateStr].Volume += s.Weight * float64(s.Reps)
+				entry.Volume += s.Weight * float64(s.Reps)
+				dailyMap[dateStr] = entry
 			}
 		}
 	}
 
-	// --- Sort dates ---
-	var sortedDates []string
-	for d := range dailyMap {
-		sortedDates = append(sortedDates, d)
+	// Sort dates and prepare results
+	sortedDates := make([]string, 0, len(dailyMap))
+	for date := range dailyMap {
+		sortedDates = append(sortedDates, date)
 	}
 	sort.Strings(sortedDates)
 
@@ -356,53 +349,13 @@ func GetExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- Fill in missing days and interpolate ---
-	firstDate, _ := time.Parse("2006-01-02", sortedDates[0])
-	lastDate, _ := time.Parse("2006-01-02", sortedDates[len(sortedDates)-1])
-
-	results := []ProcessedHistory{}
-	var prevDate string
-	var prevW float64
-
-	for d := firstDate; !d.After(lastDate); d = d.AddDate(0, 0, 1) {
-		ds := d.Format("2006-01-02")
-		if entry, ok := dailyMap[ds]; ok {
-			results = append(results, ProcessedHistory{
-				Date:               ds,
-				Weight:             entry.MaxW,
-				InterpolatedWeight: entry.MaxW,
-				Volume:             entry.Volume,
-			})
-			prevDate = ds
-			prevW = entry.MaxW
-			continue
-		}
-
-		// Interpolate if possible
-		// Find next known
-		var nextDate string
-		var nextW float64
-		for i := range sortedDates {
-			if sortedDates[i] > ds {
-				nextDate = sortedDates[i]
-				nextW = dailyMap[nextDate].MaxW
-				break
-			}
-		}
-		if prevDate == "" || nextDate == "" {
-			continue
-		}
-
-		d0, _ := time.Parse("2006-01-02", prevDate)
-		dn, _ := time.Parse("2006-01-02", nextDate)
-		totalGap := dn.Sub(d0).Hours() / 24
-		curGap := d.Sub(d0).Hours() / 24
-
-		interpolated := prevW + (nextW-prevW)*(1-math.Cos(math.Pi*curGap/totalGap))/2
-
+	results := make([]ProcessedHistory, 0, len(sortedDates))
+	for _, date := range sortedDates {
+		entry := dailyMap[date]
 		results = append(results, ProcessedHistory{
-			Date:               ds,
-			InterpolatedWeight: interpolated,
+			Date:   date,
+			Weight: entry.MaxW,
+			Volume: entry.Volume,
 		})
 	}
 
@@ -433,7 +386,11 @@ func GetCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	cardioHistory, err := database.GetCardioHistoryData(cardioObjID, userObjID)
 	if err != nil {
-		http.Error(w, "Failed to retrieve data", http.StatusInternalServerError)
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No history found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to retrieve cardio history data", http.StatusInternalServerError)
 		return
 	}
 
