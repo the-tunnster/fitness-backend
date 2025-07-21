@@ -296,3 +296,31 @@ func GetCardioHistoryData(cardioID primitive.ObjectID, userID primitive.ObjectID
 
 	return
 }
+
+func GetLastTwoWorkouts(userID, routineID primitive.ObjectID) (workouts []models.FullWorkout, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("workouts")
+	opts := options.Find().SetSort(bson.D{{Key: "workoutDate", Value: -1}}).SetLimit(2)
+
+	cursor, err := collection.Find(ctx, bson.M{
+		"userID":    userID,
+		"routineID": routineID,
+	}, opts)
+	if err != nil {
+		return
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var workout models.FullWorkout
+		err = cursor.Decode(&workout)
+		if err != nil {
+			return
+		}
+		workouts = append(workouts, workout)
+	}
+
+	return
+}
