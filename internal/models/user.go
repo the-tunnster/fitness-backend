@@ -11,4 +11,5 @@ type User struct {
 	Height         float64            `bson:"height" json:"height"`
 	Weight         float64            `bson:"weight" json:"weight"`
 	UnitPreference string             `bson:"unitPreference" json:"unitPreference"`
+	ClearanceLevel int                `bson:"clearanceLevel" json:"clearanceLevel"`
 }
