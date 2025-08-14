@@ -20,7 +20,11 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := database.GetUserByEmail(emailID)
 	if err != nil {
-		http.Error(w, "Couldn't find user", http.StatusNotFound)
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No user for this email address", http.StatusNotFound)
+		} else {
+			http.Error(w, "Couldn't find user", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -463,12 +467,12 @@ func GetWorkoutComparisonHandler(w http.ResponseWriter, r *http.Request) {
 
 		exerciseMetricMap[key] = MetricChange{
 			ExerciseName: exercise_name,
-			Variation: exercise.Variation,
-			MaxWeight: max_weight,
-			TotalReps: total_reps,
-			TotalVolume: total_volume,
+			Variation:    exercise.Variation,
+			MaxWeight:    max_weight,
+			TotalReps:    total_reps,
+			TotalVolume:  total_volume,
 			WeightChange: max_weight,
-			RepsChange: total_reps,
+			RepsChange:   total_reps,
 			VolumeChange: total_volume,
 		}
 	}
