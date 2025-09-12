@@ -209,7 +209,14 @@ func UpdateExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	warmup_id, _ := primitive.ObjectIDFromHex("68b404d49f9d0233e1c187cc")
+	cooldown_id, _ := primitive.ObjectIDFromHex("68b406489f9d0233e1c187cd")
+
 	for _, exercise := range(workoutData.Exercises){
+		if exercise.ExerciseID == warmup_id || exercise.ExerciseID == cooldown_id{
+			continue
+		}
+
         if len(exercise.Sets) == 0 {
             continue
         }
