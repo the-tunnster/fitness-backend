@@ -31,6 +31,24 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(userID.Hex())
 }
 
+func CreateOverseerHandler(w http.ResponseWriter, r *http.Request) {
+	var overseer models.Overseer
+
+	if err := json.NewDecoder(r.Body).Decode(&overseer); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	overseerID, err := database.CreateOverseer(overseer)
+	if err != nil {
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(overseerID.Hex())
+}
+
 func CreateExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	var exercise models.Exercise
 

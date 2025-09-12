@@ -32,6 +32,27 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func GetOverseerHandler(w http.ResponseWriter, r *http.Request) {
+	emailID := r.URL.Query().Get("email")
+	if emailID == "" {
+		http.Error(w, "Missing email parameter", http.StatusBadRequest)
+		return
+	}
+
+	overseer, err := database.GetOverseerByEmail(emailID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No user for this email address", http.StatusNotFound)
+		} else {
+			http.Error(w, "Couldn't find user", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(overseer)
+}
+
 func GetExerciseIDHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseNames := r.URL.Query()["exercise_name"]
 	if len(exerciseNames) == 0 {

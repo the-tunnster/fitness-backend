@@ -20,14 +20,14 @@ func DeleteSession(sessionID primitive.ObjectID) (err error) {
 	return
 }
 
-func DeleteRoutine(userID, routiuneID primitive.ObjectID) (err error) {
+func DeleteRoutine(userID, routineID primitive.ObjectID) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	collection := GetCollection("routines")
 
 	result, err := collection.DeleteOne(ctx, bson.M{
-		"_id":    routiuneID,
+		"_id":    routineID,
 		"userID": userID,
 	})
 

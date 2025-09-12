@@ -45,7 +45,29 @@ func UpdateUser(userID primitive.ObjectID, updates bson.M) (err error) {
 		},
 	)
 	if err != nil {
-		log.Println("Error updating used information")
+		log.Println("Error updating user information")
+		log.Println(err)
+	}
+
+	return
+}
+
+func UpdateOverseer(overseerID primitive.ObjectID, updates bson.M) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("overseer")
+	
+	_, err = collection.UpdateOne(ctx,
+		bson.M{
+			"_id": overseerID,
+		},
+		bson.M{
+			"$set": updates,
+		},
+	)
+	if err != nil {
+		log.Println("Error updating overseer information")
 		log.Println(err)
 	}
 

@@ -40,6 +40,34 @@ func GetUserByID(userID primitive.ObjectID) (user models.User, err error) {
 	return
 }
 
+func GetOverseerByEmail(emailID string) (overseer models.Overseer, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("overseers")
+
+	err = collection.FindOne(ctx, bson.M{"email": emailID}).Decode(&overseer)
+	if err != nil {
+		return models.Overseer{}, err
+	}
+
+	return
+}
+
+func GetOverseerByID(overseerID primitive.ObjectID) (overseer models.Overseer, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("overseers")
+
+	err = collection.FindOne(ctx, bson.M{"_id": overseerID}).Decode(&overseer)
+	if err != nil {
+		return models.Overseer{}, err
+	}
+
+	return
+}
+
 func GetUserRoutines(userID primitive.ObjectID) (routineList []models.Routine, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

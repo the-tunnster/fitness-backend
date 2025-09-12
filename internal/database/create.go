@@ -24,6 +24,21 @@ func CreateUser(user models.User) (userID primitive.ObjectID, err error) {
     return
 }
 
+func CreateOverseer(overseer models.Overseer) (overseerID primitive.ObjectID, err error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+
+    collection := GetCollection("overseers")
+
+    result, err := collection.InsertOne(ctx, overseer)
+    if err != nil {
+        return
+    }
+
+    overseerID = result.InsertedID.(primitive.ObjectID)
+    return
+}
+
 func CreateExercise(exercise models.Exercise) (exerciseID primitive.ObjectID, err error) {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()

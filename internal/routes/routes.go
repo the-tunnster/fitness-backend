@@ -12,6 +12,10 @@ func RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/user/create", handlers.CreateUserHandler)
     mux.HandleFunc("/user/update", handlers.UpdateUserHandler)
 
+    // OVERSEER
+    mux.HandleFunc("/overseer/create", handlers.CreateOverseerHandler)
+    mux.HandleFunc("/overseer/update", handlers.UpdateOverseerHandler)
+
     // EXERCISE
     mux.HandleFunc("/exercise/id", handlers.GetExerciseIDHandler)
     mux.HandleFunc("/exercise/name", handlers.GetExerciseNameHandler)
@@ -53,4 +57,5 @@ func RegisterRoutes(mux *http.ServeMux) {
     
     // AUTH
     mux.HandleFunc("/me", handlers.GetUserHandler)
+    mux.HandleFunc("/overseer", handlers.GetOverseerHandler)
 }

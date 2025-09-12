@@ -12,6 +12,9 @@ func InitIndexes(ctx context.Context, db *mongo.Database) error {
 	if err := initUserIndexes(ctx, db); err != nil {
 		return err
 	}
+	if err := initOverseerIndexes(ctx, db); err != nil {
+		return err
+	}
 	if err := initRoutineIndexes(ctx, db); err != nil {
 		return err
 	}
@@ -39,6 +42,15 @@ func InitIndexes(ctx context.Context, db *mongo.Database) error {
 func initUserIndexes(ctx context.Context, db *mongo.Database) error {
 	users := db.Collection("users")
 	_, err := users.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "email", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+	return err
+}
+
+func initOverseerIndexes(ctx context.Context, db *mongo.Database) error {
+	overseers := db.Collection("overseers")
+	_, err := overseers.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})

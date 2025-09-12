@@ -43,6 +43,35 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func UpdateOverseerHandler(w http.ResponseWriter, r *http.Request) {
+	overseerID := r.URL.Query().Get("overseer_id")
+	if overseerID == "" {
+		http.Error(w, "Missing overseer_id", http.StatusBadRequest)
+		return
+	}
+	overseerObjID, err := primitive.ObjectIDFromHex(overseerID)
+	if err != nil {
+		http.Error(w, "Invalid overseer_id", http.StatusBadRequest)
+		return
+	}
+
+	var updates bson.M
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	updates["updatedAt"] = time.Now()
+
+	err = database.UpdateOverseer(overseerObjID, updates)
+	if err != nil {
+		http.Error(w, "Failed to update overseer", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func UpdateExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseID := r.URL.Query().Get("exercise_id")
 
