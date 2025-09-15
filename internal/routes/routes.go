@@ -9,6 +9,7 @@ import (
 func RegisterRoutes(mux *http.ServeMux) {
 
     // USER
+    mux.HandleFunc("/user/id", handlers.GetUserByIDHandler)
     mux.HandleFunc("/user/create", handlers.CreateUserHandler)
     mux.HandleFunc("/user/update", handlers.UpdateUserHandler)
 
