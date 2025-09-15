@@ -32,6 +32,33 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		return
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, "No user for this user id", http.StatusNotFound)
+		return
+	}
+
+	user, err := database.GetUserByID(userObjID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No user for this user id", http.StatusNotFound)
+		} else {
+			http.Error(w, "Couldn't find user", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
 func GetOverseerHandler(w http.ResponseWriter, r *http.Request) {
 	emailID := r.URL.Query().Get("email")
 	if emailID == "" {
