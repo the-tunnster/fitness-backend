@@ -103,7 +103,7 @@ func GetRoutineData(userID, routineID primitive.ObjectID) (routine models.FullRo
 
 	err = collection.FindOne(ctx, bson.M{
 		"_id":    routineID,
-		"userID": userID,
+	//	"userID": userID,
 	}).Decode(&routine)
 
 	return
