@@ -8,3 +8,10 @@ type Overseer struct {
 	Email    string               `bson:"email" json:"email"`
 	Clients  []primitive.ObjectID `bson:"clients" json:"clients"`
 }
+
+type OverseerDTO struct {
+	ID       string
+	Username string
+	Email    string
+	Clients  []string
+}

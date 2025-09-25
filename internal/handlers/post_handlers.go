@@ -32,16 +32,31 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateOverseerHandler(w http.ResponseWriter, r *http.Request) {
+	var overseerDTO models.OverseerDTO
 	var overseer models.Overseer
 
-	if err := json.NewDecoder(r.Body).Decode(&overseer); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&overseerDTO); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
+	clientIDs := make([]primitive.ObjectID, 0, len(overseerDTO.Clients))
+	for _, id := range(overseerDTO.Clients) {
+		clientID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			http.Error(w, "Invalid client id", http.StatusBadRequest)
+			return
+		}
+		clientIDs = append(clientIDs, clientID)
+	}
+
+	overseer.Clients = clientIDs
+	overseer.Email = overseerDTO.Email
+	overseer.Username = overseerDTO.Username
+
 	overseerID, err := database.CreateOverseer(overseer)
 	if err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		http.Error(w, "Failed to create overseer", http.StatusInternalServerError)
 		return
 	}
 
