@@ -32,6 +32,19 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	userList, err := database.GetAllUsers()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "No users found", http.StatusNotFound)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(userList)
+}
+
 func GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {

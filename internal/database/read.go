@@ -40,6 +40,34 @@ func GetUserByID(userID primitive.ObjectID) (user models.User, err error) {
 	return
 }
 
+func GetAllUsers() (userList []models.User, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("users")
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var user models.User
+		if err := cursor.Decode(&user); err != nil {
+			log.Printf("Error decoding user document: %v", err)
+			continue
+		}
+		userList = append(userList, user)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func GetOverseerByEmail(emailID string) (overseer models.Overseer, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
