@@ -3,11 +3,11 @@ package models
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Exercise struct {
-	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name            string             `bson:"name" json:"name"`
-	Category        string             `bson:"category" json:"category"`
-	Variations      []string           `bson:"variations" json:"variations"`
-	Equipment       []string           `bson:"equipment" json:"equipment"`
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name       string             `bson:"name" json:"name"`
+	Category   string             `bson:"category" json:"category"`
+	Variations []string           `bson:"variations" json:"variations"`
+	Equipment  []string           `bson:"equipment" json:"equipment"`
 }
 
 type ExerciseSets struct {
@@ -21,5 +21,5 @@ type ExerciseHistory struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	UserID     primitive.ObjectID `bson:"userID" json:"user_id"`
 	ExerciseID primitive.ObjectID `bson:"exerciseID" json:"exercise_id"`
-	Sets       []ExerciseSets     `bson:"exercise_sets" json:"exercise_sets"`
+	Sets       []ExerciseSets     `bson:"exerciseSets" json:"exercise_sets"`
 }

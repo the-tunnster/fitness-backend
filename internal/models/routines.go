@@ -5,10 +5,10 @@ import (
 )
 
 type RoutineExercise struct {
-	ExerciseID primitive.ObjectID `bson:"exercise_id" json:"exercise_id"`
+	ExerciseID primitive.ObjectID `bson:"exerciseID" json:"exercise_id"`
 	Name       string             `bson:"name" json:"name"`
-	TargetSets int                `bson:"target_sets" json:"target_sets"`
-	TargetReps int                `bson:"target_reps" json:"target_reps"`
+	TargetSets int                `bson:"targetSets" json:"target_sets"`
+	TargetReps int                `bson:"targetReps" json:"target_reps"`
 }
 
 type RoutineExerciseDTO struct {

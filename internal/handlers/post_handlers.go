@@ -8,91 +8,57 @@ import (
 
 	"fitness-tracker/internal/database"
 	"fitness-tracker/internal/models"
+	"fitness-tracker/internal/service"
+	"fitness-tracker/internal/utils"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	userID, err := database.CreateUser(user)
 	if err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(userID.Hex())
-}
-
-func CreateOverseerHandler(w http.ResponseWriter, r *http.Request) {
-	var overseerDTO models.OverseerDTO
-	var overseer models.Overseer
-
-	if err := json.NewDecoder(r.Body).Decode(&overseerDTO); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-
-	clientIDs := make([]primitive.ObjectID, 0, len(overseerDTO.Clients))
-	for _, id := range(overseerDTO.Clients) {
-		clientID, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			http.Error(w, "Invalid client id", http.StatusBadRequest)
-			return
-		}
-		clientIDs = append(clientIDs, clientID)
-	}
-
-	overseer.Clients = clientIDs
-	overseer.Email = overseerDTO.Email
-	overseer.Username = overseerDTO.Username
-
-	overseerID, err := database.CreateOverseer(overseer)
-	if err != nil {
-		http.Error(w, "Failed to create overseer", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(overseerID.Hex())
+	utils.JSONResponse(w, http.StatusCreated, userID.Hex())
 }
 
 func CreateExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	var exercise models.Exercise
 
 	if err := json.NewDecoder(r.Body).Decode(&exercise); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	exerciseID, err := database.CreateExercise(exercise)
 	if err != nil {
-		http.Error(w, "Failed to create exercise", http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create exercise")
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(exerciseID.Hex())
+	utils.JSONResponse(w, http.StatusCreated, exerciseID.Hex())
 }
 
 func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	var routine_data models.FullRoutineDTO
 	if err := json.NewDecoder(r.Body).Decode(&routine_data); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
@@ -100,7 +66,7 @@ func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 	for _, exercise := range routine_data.Exercises {
 		exerciseObjID, err := primitive.ObjectIDFromHex(exercise.ExerciseID)
 		if err != nil {
-			http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+			utils.ErrorResponse(w, http.StatusBadRequest, "Invalid exercise_id")
 			return
 		}
 
@@ -120,12 +86,11 @@ func CreateRoutineHandler(w http.ResponseWriter, r *http.Request) {
 
 	routineID, err := database.CreateRoutine(newRoutine)
 	if err != nil {
-		http.Error(w, "Failed to create routine", http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create routine")
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(routineID.Hex())
+	utils.JSONResponse(w, http.StatusCreated, routineID.Hex())
 }
 
 func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
@@ -133,127 +98,40 @@ func CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	routineID := r.URL.Query().Get("routine_id")
 
 	if userID == "" || routineID == "" {
-		http.Error(w, "Missing user_id or routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id or routine_id")
 		return
 	}
 
-	userObjID, err := primitive.ObjectIDFromHex(userID)
+	// Delegate session generation to the service layer
+
+	session, err := service.GenerateWorkoutSession(userID, routineID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Failed to generate session")
 		return
 	}
 
-	routineObjID, err := primitive.ObjectIDFromHex(routineID)
+	sessionID, err := database.UpsertSession(*session)
 	if err != nil {
-		http.Error(w, "Invalid routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create or update session")
 		return
 	}
 
-	full_routine, err := database.GetRoutineData(userObjID, routineObjID)
-	if err != nil {
-		http.Error(w, "Couldn't find a matching routine for the provided routine_id", http.StatusBadRequest)
-		return
-	}
+	log.Print("successfully upserted workout session", sessionID)
 
-	var last_workout_exercises []models.WorkoutExercise
-	routine_exercises := full_routine.Exercises
-
-	var workout_exercises []models.WorkoutExercise
-
-	last_workout, err := database.GetLastWorkoutForRoutine(userObjID, routineObjID)
-	if err == nil {
-		last_workout_exercises = last_workout.Exercises
-	}
-
-	lastWorkoutIndex := 0
-
-	for _, routine_exercise := range routine_exercises {
-
-		var exercise_sets []models.WorkoutSet
-		historic_exercise_equipment := "None"
-		historic_exercise_variation := "None"
-		i := 0
-
-		if lastWorkoutIndex < len(last_workout_exercises) && last_workout_exercises[lastWorkoutIndex].ExerciseID == routine_exercise.ExerciseID {
-			
-			lastWorkoutExercise := last_workout_exercises[lastWorkoutIndex]
-			historic_exercise_equipment = lastWorkoutExercise.Equipment
-			historic_exercise_variation = lastWorkoutExercise.Variation
-
-			// Use the sets from the last workout
-			for ; i < routine_exercise.TargetSets && i < len(lastWorkoutExercise.Sets); i++ {
-				exercise_sets = append(exercise_sets, models.WorkoutSet{
-					Reps:   lastWorkoutExercise.Sets[i].Reps,
-					Weight: lastWorkoutExercise.Sets[i].Weight,
-				})
-			}
-
-			lastWorkoutIndex++
-		} else { // Fallback to exercise history if no last workout data or no match
-			exercise_history, err := database.GetExerciseHistoryData(routine_exercise.ExerciseID, userObjID)
-
-			if err != mongo.ErrNoDocuments && len(exercise_history.Sets) > 0 {
-				historic_workout_sets := exercise_history.Sets[len(exercise_history.Sets)-1].WorkoutSets
-				historic_exercise_equipment = exercise_history.Sets[len(exercise_history.Sets)-1].Equipment
-				historic_exercise_variation = exercise_history.Sets[len(exercise_history.Sets)-1].Variation
-
-				for ; i < routine_exercise.TargetSets && i < len(historic_workout_sets); i++ {
-					exercise_sets = append(exercise_sets, models.WorkoutSet{
-						Reps:   historic_workout_sets[i].Reps,
-						Weight: historic_workout_sets[i].Weight,
-					})
-				}
-			}
-		}
-
-		// Fill remaining sets with default values
-		for ; i < routine_exercise.TargetSets; i++ {
-			exercise_sets = append(exercise_sets, models.WorkoutSet{
-				Reps:   routine_exercise.TargetReps,
-				Weight: 0.0,
-			})
-		}
-
-		workout_exercises = append(workout_exercises, models.WorkoutExercise{
-			ExerciseID: routine_exercise.ExerciseID,
-			Equipment:  historic_exercise_equipment,
-			Variation:  historic_exercise_variation,
-			Sets:       exercise_sets,
-		})
-
-	}
-
-	workout_session := models.WorkoutSession{
-		UserID:        userObjID,
-		RoutineID:     routineObjID,
-		Exercises:     workout_exercises,
-		ExerciseIndex: 0,
-		LastUpdate:    primitive.NewDateTimeFromTime(time.Now()),
-	}
-
-	sessionID, err := database.CreateSession(workout_session)
-	if err != nil {
-		http.Error(w, "Failed to create session", http.StatusInternalServerError)
-		return
-	}
-
-	log.Print("succesfully created workout session", sessionID)
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(sessionID.Hex())
+	utils.JSONResponse(w, http.StatusCreated, sessionID.Hex())
 }
 
 func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session_id")
 	sessionObjID, err := primitive.ObjectIDFromHex(sessionID)
 	if err != nil {
-		http.Error(w, "Invalid session_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid session_id")
 		return
 	}
 
 	workout_session, err := database.GetSessionData(sessionObjID)
 	if err != nil {
-		http.Error(w, "Failed to find session", http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to find session")
 		return
 	}
 
@@ -267,12 +145,11 @@ func CreateWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	workoutID, err := database.CreateWorkout(workout)
 	if err != nil {
-		http.Error(w, "Failed to create workout", http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create workout")
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(workoutID.Hex())
+	utils.JSONResponse(w, http.StatusCreated, workoutID.Hex())
 }
 
 func CreateExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
@@ -280,19 +157,19 @@ func CreateExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseID := r.URL.Query().Get("exercise_id")
 
 	if userID == "" || exerciseID == "" {
-		http.Error(w, "Missing user_id or exercise_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id or exercise_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
 	if err != nil {
-		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid exercise_id")
 		return
 	}
 
@@ -304,47 +181,9 @@ func CreateExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	historyID, err := database.CreateExerciseHistory(exerciseHistory)
 	if err != nil {
-		http.Error(w, "Failed to create exercise history: "+err.Error(), http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create exercise history: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(historyID.Hex())
-}
-
-func CreateCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	cardioID := r.URL.Query().Get("cardio_id")
-
-	if userID == "" || cardioID == "" {
-		http.Error(w, "Missing user_id or cardio_id", http.StatusBadRequest)
-		return
-	}
-
-	userObjID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
-		return
-	}
-
-	cardioObjID, err := primitive.ObjectIDFromHex(cardioID)
-	if err != nil {
-		http.Error(w, "Invalid cardio_id", http.StatusBadRequest)
-		return
-	}
-
-	cardioHistory := models.CardioHistory{
-		CardioID: cardioObjID,
-		UserID:   userObjID,
-		Sessions: []models.CardioSession{},
-	}
-
-	historyID, err := database.CreateCardioHistory(cardioHistory)
-	if err != nil {
-		http.Error(w, "Failed to create cardio history: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(historyID.Hex())
+	utils.JSONResponse(w, http.StatusCreated, historyID.Hex())
 }

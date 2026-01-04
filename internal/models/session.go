@@ -6,9 +6,9 @@ import (
 
 type WorkoutSession struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	UserID        primitive.ObjectID `bson:"user_id" json:"user_id"`
-	RoutineID     primitive.ObjectID `bson:"routine_id,omitempty" json:"routine_id,omitempty"`
+	UserID        primitive.ObjectID `bson:"userID" json:"user_id"`
+	RoutineID     primitive.ObjectID `bson:"routineID,omitempty" json:"routine_id,omitempty"`
 	Exercises     []WorkoutExercise  `bson:"exercises" json:"exercises"`
-	ExerciseIndex int                `bson:"exercise_index" json:"exercise_index"`
-	LastUpdate    primitive.DateTime `bson:"last_update" json:"last_update"`
+	ExerciseIndex int                `bson:"exerciseIndex" json:"exercise_index"`
+	LastUpdate    primitive.DateTime `bson:"lastUpdated" json:"last_update"`
 }

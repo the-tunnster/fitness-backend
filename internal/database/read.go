@@ -68,34 +68,6 @@ func GetAllUsers() (userList []models.User, err error) {
 	return
 }
 
-func GetOverseerByEmail(emailID string) (overseer models.Overseer, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	collection := GetCollection("overseers")
-
-	err = collection.FindOne(ctx, bson.M{"email": emailID}).Decode(&overseer)
-	if err != nil {
-		return models.Overseer{}, err
-	}
-
-	return
-}
-
-func GetOverseerByID(overseerID primitive.ObjectID) (overseer models.Overseer, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	collection := GetCollection("overseers")
-
-	err = collection.FindOne(ctx, bson.M{"_id": overseerID}).Decode(&overseer)
-	if err != nil {
-		return models.Overseer{}, err
-	}
-
-	return
-}
-
 func GetUserRoutines(userID primitive.ObjectID) (routineList []models.Routine, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -131,7 +103,7 @@ func GetRoutineData(userID, routineID primitive.ObjectID) (routine models.FullRo
 
 	err = collection.FindOne(ctx, bson.M{
 		"_id":    routineID,
-	//	"userID": userID,
+		"userID": userID,
 	}).Decode(&routine)
 
 	return
@@ -149,6 +121,37 @@ func GetUserWorkouts(userID primitive.ObjectID) (workoutList []models.Workout, e
 	if err != nil {
 		return nil, err
 	}
+
+	for cursor.Next(ctx) {
+		var workout models.Workout
+		if err := cursor.Decode(&workout); err != nil {
+			continue
+		}
+		workoutList = append(workoutList, workout)
+	}
+
+	if err := cursor.Err(); err != nil {
+		log.Println("Error decoding some documents")
+		log.Println(err)
+	}
+
+	return
+}
+
+func GetUserWorkoutsByRoutine(userID, routineID primitive.ObjectID) (workoutList []models.Workout, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := GetCollection("workouts")
+
+	cursor, err := collection.Find(ctx, bson.M{
+		"userID":    userID,
+		"routineID": routineID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
 		var workout models.Workout
@@ -218,7 +221,7 @@ func GetUserSessionData(userID primitive.ObjectID) (session models.WorkoutSessio
 
 	collection := GetCollection("sessions")
 
-	err = collection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&session)
+	err = collection.FindOne(ctx, bson.M{"userID": userID}).Decode(&session)
 
 	return
 }
@@ -256,27 +259,7 @@ func GetExerciseList() (exercises []models.Exercise) {
 	return
 }
 
-func GetCardioList() (cardios []models.Cardio) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	collection := GetCollection("cardio")
-
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		return nil
-	}
-
-	for cursor.Next(ctx) {
-		var cardio models.Cardio
-		if err := cursor.Decode(&cardio); err != nil {
-			continue
-		}
-		cardios = append(cardios, cardio)
-	}
-
-	return
-}
+// Cardio feature removed
 
 func GetExerciseID(exerciseName string) (exerciseID string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -290,9 +273,15 @@ func GetExerciseID(exerciseName string) (exerciseID string, err error) {
 		"name": exerciseName,
 	}).Decode(&exercise)
 
-	exerciseID = exercise.ID.Hex()
-
-	return
+	if err != nil {
+		// Not found or other error; return empty ID with error
+		return "", err
+	}
+	if exercise.ID.IsZero() {
+		// Defensive: decoded but no ID present
+		return "", nil
+	}
+	return exercise.ID.Hex(), nil
 }
 
 func GetExerciseName(exerciseID primitive.ObjectID) (exerciseName string, err error) {
@@ -339,19 +328,7 @@ func GetExerciseHistoryData(exerciseID primitive.ObjectID, userID primitive.Obje
 	return
 }
 
-func GetCardioHistoryData(cardioID primitive.ObjectID, userID primitive.ObjectID) (history models.CardioHistory, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	collection := GetCollection("cardioHistory")
-
-	err = collection.FindOne(ctx, bson.M{
-		"cardioID": cardioID,
-		"userID":   userID,
-	}).Decode(&history)
-
-	return
-}
+// Cardio feature removed
 
 func GetLastTwoWorkouts(userID, routineID primitive.ObjectID) (workouts []models.FullWorkout, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

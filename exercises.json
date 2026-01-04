@@ -1,0 +1,564 @@
+[
+  {
+    "name": "Warm-Up",
+    "category": "Mobility / Warm-Up",
+    "variations": [
+      "Arm Circles",
+      "Leg Swings",
+      "Torso Twists",
+      "High Knees",
+      "World's Greatest Stretch",
+      "Butt Kicks",
+      "Jumping Jacks"
+    ],
+    "equipment": [
+      "None",
+      "Resistance Band",
+      "Mat",
+      "PVC Pipe"
+    ]
+  },
+  {
+    "name": "Cool-Down",
+    "category": "Mobility / Cool-Down",
+    "variations": [
+      "Hamstring Stretch",
+      "Quad Stretch",
+      "Chest Opener",
+      "Child's Pose",
+      "Cobra Stretch",
+      "Foam Rolling",
+      "Pigeon Pose"
+    ],
+    "equipment": [
+      "None",
+      "Mat",
+      "Foam Roller",
+      "Strap / Towel",
+      "Yoga Block"
+    ]
+  },
+  {
+    "name": "Bench Press",
+    "category": "Strength",
+    "variations": [
+      "Flat",
+      "Incline",
+      "Decline",
+      "Close-Grip",
+      "Wide-Grip",
+      "Pause",
+      "Floor Press"
+    ],
+    "equipment": [
+      "Barbell",
+      "Dumbbells",
+      "Smith Machine",
+      "Machine"
+    ]
+  },
+  {
+    "name": "Squats",
+    "category": "Strength",
+    "variations": [
+      "Back",
+      "Front",
+      "Goblet",
+      "Box",
+      "Zercher",
+      "Hack",
+      "Bulgarian Split"
+    ],
+    "equipment": [
+      "Barbell",
+      "Dumbbells",
+      "Kettlebell",
+      "Hack Machine",
+      "Smith Machine",
+      "Safety Bar"
+    ]
+  },
+  {
+    "name": "Deadlifts",
+    "category": "Strength",
+    "variations": [
+      "Conventional",
+      "Sumo",
+      "Romanian",
+      "Stiff-Leg",
+      "Deficit",
+      "Rack Pull",
+      "Trap Bar"
+    ],
+    "equipment": [
+      "Barbell",
+      "Trap Bar",
+      "Dumbbells",
+      "Kettlebell"
+    ]
+  },
+  {
+    "name": "Lunges",
+    "category": "Strength",
+    "variations": [
+      "Forward",
+      "Reverse",
+      "Walking",
+      "Lateral",
+      "Stationary"
+    ],
+    "equipment": [
+      "Bodyweight",
+      "Dumbbells",
+      "Barbell",
+      "Kettlebell",
+      "Sandbag"
+    ]
+  },
+  {
+    "name": "Hip Thrusts",
+    "category": "Strength",
+    "variations": [
+      "Standard",
+      "Single-Leg"
+    ],
+    "equipment": [
+      "Barbell",
+      "Bench",
+      "Machine",
+      "Dumbbell",
+      "Resistance Band"
+    ]
+  },
+  {
+    "name": "Shoulder Press",
+    "category": "Strength",
+    "variations": [
+      "Standing",
+      "Seated",
+      "Arnold",
+      "Military",
+      "Push Press",
+      "Behind-Neck",
+      "Landmine"
+    ],
+    "equipment": [
+      "Barbell",
+      "Dumbbells",
+      "Smith Machine",
+      "Machine",
+      "Plate"
+    ]
+  },
+  {
+    "name": "Row",
+    "category": "Strength",
+    "variations": [
+      "Bent-Over",
+      "Single-Arm",
+      "Seated Cable",
+      "T-Bar",
+      "Chest-Supported",
+      "Pendlay"
+    ],
+    "equipment": [
+      "Barbell",
+      "Dumbbells",
+      "Cable Machine",
+      "T-Bar Station",
+      "Machine"
+    ]
+  },
+  {
+    "name": "Upright Row",
+    "category": "Strength",
+    "variations": [
+      "Standing",
+      "Seated"
+    ],
+    "equipment": [
+      "Barbell",
+      "Dumbbells",
+      "Cable Machine",
+      "Smith Machine",
+      "EZ Bar"
+    ]
+  },
+  {
+    "name": "Shrugs",
+    "category": "Strength",
+    "variations": [
+      "Standing",
+      "Seated",
+      "Behind-the-Back"
+    ],
+    "equipment": [
+      "Barbell",
+      "Dumbbells",
+      "Cable Machine",
+      "Smith Machine"
+    ]
+  },
+  {
+    "name": "Lat Pulldown",
+    "category": "Strength",
+    "variations": [
+      "Wide-Grip",
+      "Close-Grip",
+      "Reverse-Grip",
+      "Single-Arm",
+      "Neutral-Grip"
+    ],
+    "equipment": [
+      "Cable Machine",
+      "Plate-Loaded Machine"
+    ]
+  },
+  {
+    "name": "Pull-Ups",
+    "category": "Bodyweight Strength",
+    "variations": [
+      "Pull-Up",
+      "Chin-Up",
+      "Neutral-Grip",
+      "Wide-Grip",
+      "Weighted",
+      "Assisted"
+    ],
+    "equipment": [
+      "Pull-up Bar",
+      "Dip Belt",
+      "Resistance Band",
+      "Assisted Machine"
+    ]
+  },
+  {
+    "name": "Push-Ups",
+    "category": "Bodyweight Strength",
+    "variations": [
+      "Standard",
+      "Incline",
+      "Decline",
+      "Diamond",
+      "Wide-Grip",
+      "Weighted",
+      "Plyometric"
+    ],
+    "equipment": [
+      "None",
+      "Push-up Handles",
+      "Weight Plate",
+      "Weighted Vest"
+    ]
+  },
+  {
+    "name": "Dips",
+    "category": "Bodyweight Strength",
+    "variations": [
+      "Chest Focus",
+      "Triceps Focus",
+      "Weighted",
+      "Assisted"
+    ],
+    "equipment": [
+      "Dip Station",
+      "Bench",
+      "Dip Belt",
+      "Resistance Band",
+      "Machine"
+    ]
+  },
+  {
+    "name": "Chest Fly",
+    "category": "Strength",
+    "variations": [
+      "Incline",
+      "Flat",
+      "High-to-Low",
+      "Low-to-High"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Cable Machine",
+      "Pec Deck Machine"
+    ]
+  },
+  {
+    "name": "Bicep Curl",
+    "category": "Strength",
+    "variations": [
+      "Neutral-Grip",
+      "Narrow-Grip",
+      "Wide-Grip",
+      "Hammer",
+      "Preacher",
+      "Incline",
+      "Concentration",
+      "Reverse"
+    ],
+    "equipment": [
+      "Barbell",
+      "EZ Bar",
+      "Dumbbells",
+      "Cable",
+      "Preacher Bench",
+      "Machine"
+    ]
+  },
+  {
+    "name": "Triceps Extension",
+    "category": "Strength",
+    "variations": [
+      "Skullcrusher",
+      "Overhead",
+      "Rope Pushdown",
+      "Bar Pushdown",
+      "Kickback"
+    ],
+    "equipment": [
+      "Barbell",
+      "EZ Bar",
+      "Dumbbells",
+      "Cable",
+      "Bench",
+      "Machine"
+    ]
+  },
+  {
+    "name": "Lateral Raise",
+    "category": "Strength",
+    "variations": [
+      "Standing",
+      "Seated",
+      "Cable",
+      "Single-Arm",
+      "Leaning"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Cable",
+      "Machine",
+      "Plates"
+    ]
+  },
+  {
+    "name": "Rear Delt Fly",
+    "category": "Strength",
+    "variations": [
+      "Bent-Over",
+      "Face Pulls",
+      "Reverse Pec Deck",
+      "Cable Cross"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Cable",
+      "Rope",
+      "Pec Deck Machine"
+    ]
+  },
+  {
+    "name": "Leg Press",
+    "category": "Strength",
+    "variations": [
+      "Standard",
+      "Horizontal",
+      "Single-Leg",
+      "High Stance",
+      "Low Stance"
+    ],
+    "equipment": [
+      "Leg Press Machine"
+    ]
+  },
+  {
+    "name": "Leg Curl",
+    "category": "Strength",
+    "variations": [
+      "Seated",
+      "Lying",
+      "Standing",
+      "Nordic",
+      "Stability Ball"
+    ],
+    "equipment": [
+      "Leg Curl Machine",
+      "Stability Ball",
+      "Bodyweight"
+    ]
+  },
+  {
+    "name": "Leg Extension",
+    "category": "Strength",
+    "variations": [
+      "Standard",
+      "Single-Leg"
+    ],
+    "equipment": [
+      "Leg Extension Machine"
+    ]
+  },
+  {
+    "name": "Calf Raises",
+    "category": "Strength",
+    "variations": [
+      "Standing",
+      "Seated",
+      "Donkey",
+      "Single-Leg"
+    ],
+    "equipment": [
+      "Calf Machine",
+      "Smith Machine",
+      "Dumbbells",
+      "Step/Box"
+    ]
+  },
+  {
+    "name": "Loaded Carry",
+    "category": "Strength",
+    "variations": [
+      "Farmer's Walk",
+      "Suitcase Carry",
+      "Overhead Carry",
+      "Front Rack Carry",
+      "Waiter's Walk"
+    ],
+    "equipment": [
+      "Dumbbells",
+      "Kettlebell",
+      "Trap Bar",
+      "Sandbag",
+      "Plate"
+    ]
+  },
+  {
+    "name": "Plank",
+    "category": "Core",
+    "variations": [
+      "Standard",
+      "Side",
+      "Weighted",
+      "Reverse",
+      "Shoulder Taps"
+    ],
+    "equipment": [
+      "None",
+      "Weight Plate"
+    ]
+  },
+  {
+    "name": "Pallof Press",
+    "category": "Core",
+    "variations": [
+      "Standing",
+      "Kneeling",
+      "Half-Kneeling",
+      "Overhead"
+    ],
+    "equipment": [
+      "Cable",
+      "Resistance Band"
+    ]
+  },
+  {
+    "name": "Ab Wheel Rollout",
+    "category": "Core",
+    "variations": [
+      "Kneeling",
+      "Standing",
+      "Band Assisted"
+    ],
+    "equipment": [
+      "Ab Wheel",
+      "Barbell",
+      "Stability Ball"
+    ]
+  },
+  {
+    "name": "Crunches",
+    "category": "Core",
+    "variations": [
+      "Standard",
+      "Decline",
+      "Bicycle",
+      "Cable (Kneeling)",
+      "Machine"
+    ],
+    "equipment": [
+      "Mat",
+      "Bench",
+      "Cable",
+      "Ab Machine"
+    ]
+  },
+  {
+    "name": "Leg Raises",
+    "category": "Core",
+    "variations": [
+      "Lying",
+      "Hanging",
+      "Captain's Chair",
+      "Windshield Wipers"
+    ],
+    "equipment": [
+      "Mat",
+      "Pull-up Bar",
+      "Captain's Chair"
+    ]
+  },
+  {
+    "name": "Russian Twists",
+    "category": "Core",
+    "variations": [
+      "Feet Ground",
+      "Legs Raised",
+      "Weighted"
+    ],
+    "equipment": [
+      "Mat",
+      "Dumbbell",
+      "Kettlebell",
+      "Medicine Ball"
+    ]
+  },
+  {
+    "name": "Box Jumps",
+    "category": "Plyometrics",
+    "variations": [
+      "Standard",
+      "Seated Start",
+      "Step-Ups",
+      "Depth Jump"
+    ],
+    "equipment": [
+      "Plyo Box"
+    ]
+  },
+  {
+    "name": "Kettlebell Swing",
+    "category": "Strength / Power",
+    "variations": [
+      "Russian (Eye Level)",
+      "American (Overhead)",
+      "Single-Arm"
+    ],
+    "equipment": [
+      "Kettlebell"
+    ]
+  },
+  {
+    "name": "Back Extension",
+    "category": "Strength",
+    "variations": [
+      "45 Degree",
+      "Horizontal",
+      "Weighted"
+    ],
+    "equipment": [
+      "Hyperextension Bench",
+      "Glute-Ham Developer (GHD)",
+      "Weight Plate"
+    ]
+  }
+]

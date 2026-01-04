@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"fitness-tracker/internal/database"
+	"fitness-tracker/internal/utils"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,16 +15,16 @@ import (
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	emailID := r.URL.Query().Get("email")
 	if emailID == "" {
-		http.Error(w, "Missing email parameter", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing email parameter")
 		return
 	}
 
 	user, err := database.GetUserByEmail(emailID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			http.Error(w, "No user for this email address", http.StatusNotFound)
+			utils.ErrorResponse(w, http.StatusNotFound, "No user for this email address")
 		} else {
-			http.Error(w, "Couldn't find user", http.StatusInternalServerError)
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Couldn't find user")
 		}
 		return
 	}
@@ -36,7 +37,9 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	userList, err := database.GetAllUsers()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			http.Error(w, "No users found", http.StatusNotFound)
+			utils.ErrorResponse(w, http.StatusNotFound, "No users found")
+		} else {
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Couldn't fetch users")
 		}
 		return
 	}
@@ -48,22 +51,22 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 func GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
-		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id parameter")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "No user for this user id", http.StatusNotFound)
+		utils.ErrorResponse(w, http.StatusNotFound, "No user for this user id")
 		return
 	}
 
 	user, err := database.GetUserByID(userObjID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			http.Error(w, "No user for this user id", http.StatusNotFound)
+			utils.ErrorResponse(w, http.StatusNotFound, "No user for this user id")
 		} else {
-			http.Error(w, "Couldn't find user", http.StatusInternalServerError)
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Couldn't find user")
 		}
 		return
 	}
@@ -72,31 +75,12 @@ func GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func GetOverseerHandler(w http.ResponseWriter, r *http.Request) {
-	emailID := r.URL.Query().Get("email")
-	if emailID == "" {
-		http.Error(w, "Missing email parameter", http.StatusBadRequest)
-		return
-	}
-
-	overseer, err := database.GetOverseerByEmail(emailID)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			http.Error(w, "No user for this email address", http.StatusNotFound)
-		} else {
-			http.Error(w, "Couldn't find user", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(overseer)
-}
+// overseer handlers removed
 
 func GetExerciseIDHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseNames := r.URL.Query()["exercise_name"]
 	if len(exerciseNames) == 0 {
-		http.Error(w, "Missing exercise_name parameter(s)", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing exercise_name parameter(s)")
 		return
 	}
 
@@ -118,7 +102,7 @@ func GetExerciseIDHandler(w http.ResponseWriter, r *http.Request) {
 func GetExerciseNameHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseIDs := r.URL.Query()["exercise_id"]
 	if len(exerciseIDs) == 0 {
-		http.Error(w, "Missing exercise_id parameter(s)", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing exercise_id parameter(s)")
 		return
 	}
 
@@ -154,29 +138,22 @@ func GetExerciseListHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(exerciseList)
 }
 
-func GetCardioListHandler(w http.ResponseWriter, r *http.Request) {
-	cardioList := database.GetCardioList()
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cardioList)
-}
-
 func GetExerciseDataHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseID := r.URL.Query().Get("exercise_id")
 	if exerciseID == "" {
-		http.Error(w, "Missing exercise_id parameter", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing exercise_id parameter")
 		return
 	}
 
 	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
 	if err != nil {
-		http.Error(w, "Invalid exercise_id format", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid exercise_id format")
 		return
 	}
 
 	exercise, err := database.GetExerciseData(exerciseObjID)
 	if err != nil {
-		http.Error(w, "Couldn't find that exercise", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusNotFound, "Exercise not found")
 		return
 	}
 
@@ -187,19 +164,19 @@ func GetExerciseDataHandler(w http.ResponseWriter, r *http.Request) {
 func GetRoutineListHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
-		http.Error(w, "Missing user_id parameter", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id parameter")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id format")
 		return
 	}
 
 	routineList, err := database.GetUserRoutines(userObjID)
 	if err != nil {
-		http.Error(w, "Couldn't find any routines", http.StatusNotFound)
+		utils.ErrorResponse(w, http.StatusNotFound, "No routines found")
 		return
 	}
 
@@ -212,25 +189,29 @@ func GetRoutineDataHandler(w http.ResponseWriter, r *http.Request) {
 	routineID := r.URL.Query().Get("routine_id")
 
 	if userID == "" || routineID == "" {
-		http.Error(w, "Missing user_id or routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id or routine_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	routineObjID, err := primitive.ObjectIDFromHex(routineID)
 	if err != nil {
-		http.Error(w, "Invalid routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid routine_id")
 		return
 	}
 
 	routine, err := database.GetRoutineData(userObjID, routineObjID)
 	if err != nil {
-		http.Error(w, "Couldn't find any routine data", http.StatusInternalServerError)
+		if err == mongo.ErrNoDocuments {
+			utils.ErrorResponse(w, http.StatusNotFound, "Routine not found")
+		} else {
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Couldn't fetch routine data")
+		}
 		return
 	}
 
@@ -243,25 +224,25 @@ func GetWorkoutListHandler(w http.ResponseWriter, r *http.Request) {
 	routineID := r.URL.Query().Get("routine_id")
 
 	if userID == "" {
-		http.Error(w, "Missing user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
-	_, err = primitive.ObjectIDFromHex(routineID)
+	routineObjID, err := primitive.ObjectIDFromHex(routineID)
 	if err != nil {
-		http.Error(w, "Invalid routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid routine_id")
 		return
 	}
 
-	workoutList, err := database.GetUserWorkouts(userObjID)
+	workoutList, err := database.GetUserWorkoutsByRoutine(userObjID, routineObjID)
 	if err != nil {
-		http.Error(w, "Couldn't find any workouts", http.StatusNotFound)
+		utils.ErrorResponse(w, http.StatusNotFound, "No workouts found for routine")
 		return
 	}
 
@@ -274,25 +255,29 @@ func GetWorkoutDataHandler(w http.ResponseWriter, r *http.Request) {
 	workoutID := r.URL.Query().Get("workout_id")
 
 	if userID == "" || workoutID == "" {
-		http.Error(w, "Missing user_id or workout_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id or workout_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	workoutObjID, err := primitive.ObjectIDFromHex(workoutID)
 	if err != nil {
-		http.Error(w, "Invalid workout_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid workout_id")
 		return
 	}
 
 	workout, err := database.GetWorkoutData(userObjID, workoutObjID)
 	if err != nil {
-		http.Error(w, "Couldn't fetch workout data", http.StatusInternalServerError)
+		if err == mongo.ErrNoDocuments {
+			utils.ErrorResponse(w, http.StatusNotFound, "Workout not found")
+		} else {
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Couldn't fetch workout data")
+		}
 		return
 	}
 
@@ -303,23 +288,23 @@ func GetWorkoutDataHandler(w http.ResponseWriter, r *http.Request) {
 func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
-		http.Error(w, "Missing user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	session, err := database.GetUserSessionData(userObjID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			http.Error(w, "Couldn't find any sessions", http.StatusNotFound)
+			utils.ErrorResponse(w, http.StatusNotFound, "No sessions found")
 			return
 		} else {
-			http.Error(w, "Couldn't fetch session data", http.StatusInternalServerError)
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Couldn't fetch session data")
 			return
 		}
 	}
@@ -332,13 +317,13 @@ func CountWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 
 	if userID == "" {
-		http.Error(w, "Missing user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
@@ -353,25 +338,29 @@ func GetExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	exerciseID := r.URL.Query().Get("exercise_id")
 
 	if userID == "" || exerciseID == "" {
-		http.Error(w, "Missing user_id or exercise_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id or exercise_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	exerciseObjID, err := primitive.ObjectIDFromHex(exerciseID)
 	if err != nil {
-		http.Error(w, "Invalid exercise_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid exercise_id")
 		return
 	}
 
 	exerciseHistory, err := database.GetExerciseHistoryData(exerciseObjID, userObjID)
 	if err != nil {
-		http.Error(w, "Failed to retrieve data", http.StatusInternalServerError)
+		if err == mongo.ErrNoDocuments {
+			utils.ErrorResponse(w, http.StatusNotFound, "History not found")
+		} else {
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve data")
+		}
 		return
 	}
 
@@ -428,70 +417,35 @@ func GetExerciseHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(results)
 }
 
-func GetCardioHistoryHandler(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	cardioID := r.URL.Query().Get("cardio_id")
-
-	if userID == "" || cardioID == "" {
-		http.Error(w, "Missing user_id or cardio_id", http.StatusBadRequest)
-		return
-	}
-
-	userObjID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
-		return
-	}
-
-	cardioObjID, err := primitive.ObjectIDFromHex(cardioID)
-	if err != nil {
-		http.Error(w, "Invalid cardio_id", http.StatusBadRequest)
-		return
-	}
-
-	cardioHistory, err := database.GetCardioHistoryData(cardioObjID, userObjID)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			http.Error(w, "No history found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "Failed to retrieve cardio history data", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cardioHistory)
-}
-
 func GetWorkoutComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	routineID := r.URL.Query().Get("routine_id")
 
 	if userID == "" || routineID == "" {
-		http.Error(w, "Missing user_id or routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Missing user_id or routine_id")
 		return
 	}
 
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid user_id")
 		return
 	}
 
 	routineObjID, err := primitive.ObjectIDFromHex(routineID)
 	if err != nil {
-		http.Error(w, "Invalid routine_id", http.StatusBadRequest)
+		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid routine_id")
 		return
 	}
 
 	workouts, err := database.GetLastTwoWorkouts(userObjID, routineObjID)
 	if err != nil {
-		http.Error(w, "Failed to fetch workouts", http.StatusInternalServerError)
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to fetch workouts")
 		return
 	}
 
 	if len(workouts) < 2 {
-		http.Error(w, "Not enough workouts to compare", http.StatusNotFound)
+		utils.ErrorResponse(w, http.StatusNotFound, "Not enough workouts to compare")
 		return
 	}
 
