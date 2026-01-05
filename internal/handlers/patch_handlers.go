@@ -27,12 +27,35 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updates bson.M
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+	// Decode incoming JSON into a generic map
+	var incoming map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
 		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
+	// Normalize JSON (snake_case) keys to BSON (camelCase) keys
+	fieldMap := map[string]string{
+		"username":            "username",
+		"email":               "email",
+		"gender":              "gender",
+		"date_of_birth":       "dateOfBirth",
+		"height":              "height",
+		"weight":              "weight",
+		"unit_preference":     "unitPreference",
+		"clearance_level":     "clearanceLevel",
+		"strava_access_token": "stravaAccessToken",
+		"strava_refresh_token": "stravaRefreshToken",
+	}
+
+	updates := bson.M{}
+	for k, v := range incoming {
+		if mapped, ok := fieldMap[k]; ok {
+			updates[mapped] = v
+		}
+	}
+
+	// Always update the timestamp
 	updates["updatedAt"] = time.Now()
 
 	err = database.UpdateUser(userObjID, updates)
