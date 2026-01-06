@@ -19,6 +19,7 @@ type WorkoutExercise struct {
 	Equipment  string             `bson:"equipment" json:"equipment"`
 	Variation  string             `bson:"variation" json:"variation"`
 	Sets       []WorkoutSet       `bson:"sets" json:"sets"`
+	Name       string             `bson:"name" json:"name"`
 }
 
 type WorkoutExerciseDTO struct {
@@ -26,6 +27,7 @@ type WorkoutExerciseDTO struct {
 	Equipment  string       `json:"equipment"`
 	Variation  string       `json:"variation"`
 	Sets       []WorkoutSet `json:"sets"`
+	Name       string       `json:"name"`
 }
 
 type FullWorkout struct {
