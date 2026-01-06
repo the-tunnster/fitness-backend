@@ -70,9 +70,8 @@ func UpdateExerciseHistory(userID, workoutID string) error {
 				"exerciseSets": exSets,
 			},
 			"$setOnInsert": bson.M{
-				"userID":       userObjID,
-				"exerciseID":   exercise.ExerciseID,
-				"exerciseSets": []models.ExerciseSets{},
+				"userID":     userObjID,
+				"exerciseID": exercise.ExerciseID,
 			},
 		}
 
