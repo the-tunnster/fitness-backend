@@ -309,6 +309,15 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	for i := range session.Exercises {
+		if session.Exercises[i].Name == "" {
+			exData, err := database.GetExerciseData(session.Exercises[i].ExerciseID)
+			if err == nil {
+				session.Exercises[i].Name = exData.Name
+			}
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(session)
 }
