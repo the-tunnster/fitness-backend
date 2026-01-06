@@ -103,6 +103,7 @@ func buildExercisesFromRoutine(routine models.FullRoutine, lastWorkout *models.F
 			Equipment:  equipment,
 			Variation:  variation,
 			Sets:       sets,
+			Name:       rEx.Name,
 		})
 	}
 
